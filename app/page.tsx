@@ -105,10 +105,10 @@ export default function Home() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Welcome to YouFresh!
+                Welcome to YouFresh
               </h2>
               <p className="text-gray-600 mb-6">
-                Your AI-powered grocery planning assistant. Create recipes, plan meals, and generate smart shopping lists.
+                Your meal planning and grocery shopping assistant. Add recipes, plan meals for the week, and generate shopping lists.
               </p>
               
               {recipes.length === 0 ? (
@@ -182,7 +182,7 @@ export default function Home() {
                     onClick={() => router.push('/suggestions')}
                     className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 text-left"
                   >
-                    🎯 Get Recipe Suggestions
+                    🎯 Suggest meals
                   </button>
                 )}
                 

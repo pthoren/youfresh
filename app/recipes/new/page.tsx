@@ -277,11 +277,11 @@ export default function NewRecipe() {
         </div>
 
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-blue-800 mb-2">💡 Tips for better AI results:</h3>
+          <h3 className="text-sm font-medium text-blue-800 mb-2">💡 Tips for better results:</h3>
           <ul className="text-sm text-blue-700 space-y-1">
-            <li>• Include quantities and units (cups, tablespoons, pounds, etc.)</li>
             <li>• One ingredient per line works best</li>
-            <li>• The AI will categorize your recipe into protein, carb, and vegetable</li>
+            <li>• Include quantities and units (cups, tablespoons, pounds, etc.)</li>
+            <li>• AI will categorize your recipe into protein, carb, and vegetable</li>
             <li>• Use the "Preview AI Parsing" button to test before saving</li>
           </ul>
         </div>

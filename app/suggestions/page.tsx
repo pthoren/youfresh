@@ -118,30 +118,15 @@ export default function Suggestions() {
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Here are 3 recipe suggestions for you!
               </h2>
-              <p className="text-gray-600">
-                Based on your {totalRecipes} recipes, recipe history, and variety preferences.
-              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {suggestions.map((suggestion, index) => (
                 <div key={suggestion.recipe.id} className="bg-white rounded-lg shadow-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-                      Suggestion #{index + 1}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      Score: {Math.round(suggestion.score)}
-                    </span>
-                  </div>
 
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
                     {suggestion.recipe.name}
                   </h3>
-
-                  <p className="text-sm text-green-600 mb-4 italic">
-                    {suggestion.reason}
-                  </p>
 
                   {/* Recipe Categories */}
                   <div className="mb-4">
@@ -172,14 +157,6 @@ export default function Suggestions() {
                         Last made: {new Date(suggestion.recipe.last_ordered_at).toLocaleDateString()}
                       </p>
                     )}
-                  </div>
-
-                  {/* Ingredients Preview */}
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Ingredients:</h4>
-                    <p className="text-sm text-gray-600 line-clamp-3">
-                      {suggestion.recipe.raw_ingredients}
-                    </p>
                   </div>
 
                   {/* Actions */}

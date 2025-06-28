@@ -181,7 +181,7 @@ Recipes are automatically displayed with color-coded categories:
 - 🌾 **Yellow badges** for carbohydrates (rice, pasta, bread, etc.)  
 - 🥬 **Green badges** for vegetables (broccoli, spinach, carrots, etc.)
 
-### Tips for Better AI Results
+### Tips for Better Results
 
 - **One ingredient per line** works best
 - **Include quantities and units** (cups, tablespoons, pounds, etc.)
