@@ -4,6 +4,40 @@ import { authOptions } from '@/lib/auth-config';
 import db from '@/lib/db';
 import { openaiService } from '@/lib/openai';
 
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const params = await context.params;
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user ID
+    const user = await db('users').where({ email: session.user.email }).first();
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Get the recipe and verify ownership
+    const recipe = await db('recipes')
+      .where({ id: params.id, user_id: user.id })
+      .first();
+
+    if (!recipe) {
+      return NextResponse.json({ error: 'Recipe not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(recipe);
+  } catch (error) {
+    console.error('Error fetching recipe:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
 export async function PUT(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }

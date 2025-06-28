@@ -85,3 +85,11 @@ export function getIngredientsFromRecipe(recipe: Recipe): Ingredient[] {
     return [];
   }
 }
+
+export function shouldShowImageLoading(recipe: Recipe): boolean {
+  // Show loading for recipes created/updated in the last 5 minutes that don't have images yet
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+  const recipeDate = new Date(recipe.updated_at || recipe.created_at);
+  
+  return recipeDate > fiveMinutesAgo && !getImageUrlFromRecipe(recipe);
+}

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { RecipeSuggestion, Ingredient, getImageUrlFromRecipe } from '@/lib/types';
 import { RefreshCw, ShoppingCart } from 'lucide-react';
+import RecipeImage from '@/components/RecipeImage';
 
 export default function Suggestions() {
   const { data: session, status } = useSession();
@@ -181,25 +182,10 @@ export default function Suggestions() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {suggestions.map((suggestion, index) => {
-                const imageUrl = getImageUrlFromRecipe(suggestion.recipe);
-                
                 return (
                   <div key={suggestion.recipe.id} className="bg-white rounded-lg shadow-lg overflow-hidden relative">
-                    {/* Recipe Image */}
-                    {imageUrl && (
-                      <div className="w-full h-48 bg-gray-200">
-                        <img
-                          src={imageUrl}
-                          alt={`Image of ${suggestion.recipe.name}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            // Hide image if it fails to load
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
+                    {/* Recipe Image with Loading Animation */}
+                    <RecipeImage recipe={suggestion.recipe} className="w-full h-48" />
                     
                     <div className="p-6">
                       {/* Selection Checkbox */}
