@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Recipe, getImageUrlFromRecipe } from '@/lib/types';
 import { Trash2, Edit, Plus } from 'lucide-react';
+import RecipeImage from '@/components/RecipeImage';
 
 export default function Recipes() {
   const { data: session, status } = useSession();
@@ -155,25 +156,10 @@ export default function Recipes() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRecipes.map((recipe) => {
-              const imageUrl = getImageUrlFromRecipe(recipe);
-              
               return (
                 <div key={recipe.id} className="bg-white rounded-lg shadow overflow-hidden">
-                  {/* Recipe Image */}
-                  {imageUrl && (
-                    <div className="w-full h-36 bg-gray-200">
-                      <img
-                        src={imageUrl}
-                        alt={`Image of ${recipe.name}`}
-                        className="w-full h-36 object-cover"
-                        onError={(e) => {
-                          // Hide image if it fails to load
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                        }}
-                      />
-                    </div>
-                  )}
+                  {/* Recipe Image with Loading Animation */}
+                  <RecipeImage recipe={recipe} className="w-full h-48" />
                   
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-4">

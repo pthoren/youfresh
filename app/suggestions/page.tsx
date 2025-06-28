@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { RecipeSuggestion, Ingredient } from '@/lib/types';
+import { RecipeSuggestion, Ingredient, getImageUrlFromRecipe } from '@/lib/types';
 import { RefreshCw, ShoppingCart } from 'lucide-react';
+import RecipeImage from '@/components/RecipeImage';
 
 export default function Suggestions() {
   const { data: session, status } = useSession();
@@ -180,20 +181,25 @@ export default function Suggestions() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {suggestions.map((suggestion, index) => (
-                <div key={suggestion.recipe.id} className="bg-white rounded-lg shadow-lg p-6 relative">
-                  {/* Selection Checkbox */}
-                  <div className="flex items-center gap-4 mb-2">
-                    <input
-                      type="checkbox"
-                      checked={selectedRecipes.has(suggestion.recipe.id)}
-                      onChange={() => toggleRecipeSelection(suggestion.recipe.id)}
-                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                    />
-                    <h3 className="text-xl font-semibold text-gray-900 pr-8">
-                      {suggestion.recipe.name}
-                    </h3>
-                  </div>
+              {suggestions.map((suggestion, index) => {
+                return (
+                  <div key={suggestion.recipe.id} className="bg-white rounded-lg shadow-lg overflow-hidden relative">
+                    {/* Recipe Image with Loading Animation */}
+                    <RecipeImage recipe={suggestion.recipe} className="w-full h-48" />
+                    
+                    <div className="p-6">
+                      {/* Selection Checkbox */}
+                      <div className="flex items-center gap-4 mb-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedRecipes.has(suggestion.recipe.id)}
+                          onChange={() => toggleRecipeSelection(suggestion.recipe.id)}
+                          className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                        <h3 className="text-xl font-semibold text-gray-900 pr-8">
+                          {suggestion.recipe.name}
+                        </h3>
+                      </div>
 
                   {/* Recipe Categories */}
                   <div className="mb-4">
@@ -235,8 +241,10 @@ export default function Suggestions() {
                       View Recipe
                     </button>
                   </div>
-                </div>
-              ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Action Buttons */}
