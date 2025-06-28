@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "YouFresh - AI-Powered Grocery Planning",
+  title: "YouFresh - AI-Powered Meal Planning",
   description: "Simplify meal planning with AI-powered recipe management",
 };
 

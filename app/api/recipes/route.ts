@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import db from '@/lib/db';
-import { Recipe } from '@/lib/types';
 import { openaiService } from '@/lib/openai';
 
 export async function GET(request: NextRequest) {
@@ -81,16 +80,6 @@ export async function POST(request: NextRequest) {
     // Add parsing status to response
     const response = {
       ...recipe,
-      parsed_ingredients: recipe.parsed_ingredients,
-      ai_parsed: !!parsedData,
-      ai_validation: parsedData ? {
-        is_valid_meal: parsedData.is_valid_meal,
-        categories_found: [
-          parsedData.primary_protein && 'protein',
-          parsedData.primary_carbohydrate && 'carbohydrate', 
-          parsedData.primary_vegetable && 'vegetable'
-        ].filter(Boolean)
-      } : null
     };
 
     return NextResponse.json(response, { status: 201 });

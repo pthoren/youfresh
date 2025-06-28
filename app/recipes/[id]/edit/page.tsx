@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Recipe, ParsedRecipeData } from '@/lib/types';
 
-export default function EditRecipe({ params }: { params: { id: string } }) {
+export default function EditRecipe({ params }: { params: Promise<{ id: string }> }) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [recipeId, setRecipeId] = useState<string>('');
   const [formData, setFormData] = useState({
     name: '',
     raw_ingredients: '',
@@ -21,8 +22,15 @@ export default function EditRecipe({ params }: { params: { id: string } }) {
   const [parsedData, setParsedData] = useState<ParsedRecipeData | null>(null);
   const [showParsed, setShowParsed] = useState(false);
 
+  // Resolve params Promise
   useEffect(() => {
-    if (status === 'loading') return;
+    params.then((resolvedParams) => {
+      setRecipeId(resolvedParams.id);
+    });
+  }, [params]);
+
+  useEffect(() => {
+    if (status === 'loading' || !recipeId) return;
     
     if (!session) {
       router.push('/auth/signin');
@@ -30,14 +38,14 @@ export default function EditRecipe({ params }: { params: { id: string } }) {
     }
 
     fetchRecipe();
-  }, [session, status, router, params.id]);
+  }, [session, status, router, recipeId]);
 
   const fetchRecipe = async () => {
     try {
       const response = await fetch('/api/recipes');
       if (response.ok) {
         const recipes = await response.json();
-        const currentRecipe = recipes.find((r: Recipe) => r.id === params.id);
+        const currentRecipe = recipes.find((r: Recipe) => r.id === recipeId);
         
         if (currentRecipe) {
           setRecipe(currentRecipe);
@@ -109,7 +117,7 @@ export default function EditRecipe({ params }: { params: { id: string } }) {
         updateData.last_ordered_at = new Date(formData.last_ordered_at).toISOString();
       }
 
-      const response = await fetch(`/api/recipes/${params.id}`, {
+      const response = await fetch(`/api/recipes/${recipeId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

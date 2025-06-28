@@ -80,13 +80,7 @@ export default function NewRecipe() {
 
       if (response.ok) {
         const data = await response.json();
-        
-        // Show AI parsing results if available
-        if (data.ai_parsed && data.ai_validation) {
-          console.log('Recipe created with AI parsing:', data.ai_validation);
-          // You could show a success toast here with parsing details
-        }
-        
+                
         router.push('/recipes');
       } else {
         const data = await response.json();
