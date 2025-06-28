@@ -62,6 +62,21 @@ export async function PUT(
       .update(updateData)
       .returning('*');
 
+    // Trigger image generation for recipe updates (fire-and-forget)
+    if (name !== undefined || raw_ingredients !== undefined) {
+      // Don't await - let it run in background
+      fetch(`${request.nextUrl.origin}/api/recipes/generate-image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': request.headers.get('Cookie') || '',
+        },
+        body: JSON.stringify({ recipeId: params.id }),
+      }).catch(error => {
+        console.error('Background image generation failed for updated recipe:', error);
+      });
+    }
+
     // Parse JSON fields back to objects for response
     const formattedRecipe = {
       ...updatedRecipe,
