@@ -102,7 +102,7 @@ Return only the JSON object without backticks, no additional text.`;
     }
   }
 
-  async generateRecipeImage(recipeName: string, ingredients: string[], userUuid: string): Promise<string | null> {
+  async generateRecipeImage(recipeName: string, ingredients: string[], userUuid: string, customPrompt?: string): Promise<string | null> {
     try {
       // Check if blob storage is configured
       if (!process.env.BLOB_READ_WRITE_TOKEN) {
@@ -110,8 +110,8 @@ Return only the JSON object without backticks, no additional text.`;
         return null;
       }
 
-      // Create a simple, positive-only prompt to avoid the "pink elephant" problem
-      const prompt = `${recipeName} served in white bowl, overhead view, food photography`;
+      // Use custom prompt if provided, otherwise create a simple, positive-only prompt
+      const prompt = customPrompt || `${recipeName} served in white bowl, overhead view, food photography`;
 
       const response = await this.client.images.generate({
         model: "dall-e-3",

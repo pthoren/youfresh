@@ -186,16 +186,8 @@ export default function Recipes() {
                     </div>
 
                     <div className="space-y-3">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-700 mb-1">Ingredients:</h4>
-                        <p className="text-sm text-gray-600 line-clamp-3">
-                          {recipe.raw_ingredients}
-                        </p>
-                      </div>
-
                       {(recipe.primary_protein || recipe.primary_carbohydrate || recipe.primary_vegetable) && (
                         <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-1">Categories:</h4>
                           <div className="flex flex-wrap gap-1">
                             {recipe.primary_protein && (
                               <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">
