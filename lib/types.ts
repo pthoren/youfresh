@@ -46,10 +46,42 @@ export interface ParsedRecipeData {
   primary_carbohydrate: string;
   primary_vegetable: string;
   is_valid_meal: boolean;
+  image_filename?: string;
 }
 
 export interface RecipeSuggestion {
   recipe: Recipe;
   reason: string;
   score: number;
+}
+
+export function getImageUrlFromRecipe(recipe: Recipe): string | null {
+  if (!recipe.parsed_ingredients) return null;
+  
+  try {
+    const parsed = typeof recipe.parsed_ingredients === 'string' 
+      ? JSON.parse(recipe.parsed_ingredients) 
+      : recipe.parsed_ingredients;
+    
+    // Returns the full image URL stored in image_filename field
+    return parsed.image_filename || null;
+  } catch (error) {
+    console.error('Error parsing recipe ingredients:', error);
+    return null;
+  }
+}
+
+export function getIngredientsFromRecipe(recipe: Recipe): Ingredient[] {
+  if (!recipe.parsed_ingredients) return [];
+  
+  try {
+    const parsed = typeof recipe.parsed_ingredients === 'string' 
+      ? JSON.parse(recipe.parsed_ingredients) 
+      : recipe.parsed_ingredients;
+    
+    return parsed.ingredients || [];
+  } catch (error) {
+    console.error('Error parsing recipe ingredients:', error);
+    return [];
+  }
 }

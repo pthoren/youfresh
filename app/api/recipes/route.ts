@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
 
     // Parse ingredients using AI
     let parsedData = null;
+    
     try {
       parsedData = await openaiService.parseIngredients(raw_ingredients);
     } catch (error) {
@@ -64,19 +65,35 @@ export async function POST(request: NextRequest) {
       // Continue without AI parsing - we'll store the raw ingredients
     }
 
-    // Create recipe
+    // Create recipe first (without image)
     const [recipe] = await db('recipes')
       .insert({
         user_id: user.id,
         name,
         raw_ingredients,
-        parsed_ingredients: parsedData?.ingredients ? JSON.stringify(parsedData.ingredients) : null,
+        parsed_ingredients: parsedData ? JSON.stringify(parsedData) : null,
         primary_protein: parsedData?.primary_protein || null,
         primary_carbohydrate: parsedData?.primary_carbohydrate || null,
         primary_vegetable: parsedData?.primary_vegetable || null,
         total_orders: 0,
       })
       .returning('*');
+
+    // Trigger asynchronous image generation (don't wait for it)
+    if (recipe?.id) {
+      // Fire-and-forget image generation
+      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/recipes/generate-image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': request.headers.get('cookie') || '', // Forward session
+        },
+        body: JSON.stringify({ recipeId: recipe.id }),
+      }).catch(error => {
+        console.error('Background image generation failed:', error);
+        // Fail silently - image generation is not critical
+      });
+    }
 
     // Add parsing status to response
     const response = {

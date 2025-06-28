@@ -101,6 +101,22 @@ export async function DELETE(
       return NextResponse.json({ error: 'Recipe not found' }, { status: 404 });
     }
 
+    // Clean up associated image before deleting recipe
+    if (existingRecipe.parsed_ingredients) {
+      try {
+        const parsedData = existingRecipe.parsed_ingredients;
+        if (parsedData?.image_filename) {
+          const deleted = await openaiService.deleteRecipeImage(parsedData.image_filename);
+          if (deleted) {
+            console.log(`Cleaned up image for recipe ${params.id}: ${parsedData.image_filename}`);
+          }
+        }
+      } catch (error) {
+        console.error('Error cleaning up recipe image:', error);
+        // Continue with recipe deletion even if image cleanup fails
+      }
+    }
+
     // Delete recipe
     await db('recipes').where({ id: params.id }).del();
 
