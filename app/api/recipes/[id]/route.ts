@@ -5,9 +5,10 @@ import { openaiService } from '@/lib/openai';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const session = await getServerSession();
     
     if (!session?.user?.email) {
@@ -47,15 +48,10 @@ export async function PUT(
         updateData.primary_protein = aiResult.primary_protein;
         updateData.primary_carbohydrate = aiResult.primary_carbohydrate;
         updateData.primary_vegetable = aiResult.primary_vegetable;
-        updateData.ai_parsed = true;
-        updateData.ai_validation = JSON.stringify({
-          is_valid_meal: aiResult.is_valid_meal,
-          parsed_at: new Date(),
-        });
       } catch (aiError) {
         console.error('AI parsing failed during recipe update:', aiError);
         // Continue with update even if AI parsing fails
-        updateData.ai_parsed = false;
+        throw new Error('Failed to parse ingredients');
       }
     }
     if (last_ordered_at !== undefined) updateData.last_ordered_at = last_ordered_at;
@@ -68,7 +64,6 @@ export async function PUT(
     // Parse JSON fields back to objects for response
     const formattedRecipe = {
       ...updatedRecipe,
-      parsed_ingredients: updatedRecipe.parsed_ingredients ? JSON.parse(updatedRecipe.parsed_ingredients) : null
     };
 
     return NextResponse.json(formattedRecipe);
@@ -80,9 +75,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const session = await getServerSession();
     
     if (!session?.user?.email) {
