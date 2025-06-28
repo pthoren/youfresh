@@ -161,11 +161,11 @@ export default function Recipes() {
                 <div key={recipe.id} className="bg-white rounded-lg shadow overflow-hidden">
                   {/* Recipe Image */}
                   {imageUrl && (
-                    <div className="w-full h-48 bg-gray-200">
+                    <div className="w-full h-36 bg-gray-200">
                       <img
                         src={imageUrl}
                         alt={`Image of ${recipe.name}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-36 object-cover"
                         onError={(e) => {
                           // Hide image if it fails to load
                           const target = e.target as HTMLImageElement;
@@ -200,16 +200,8 @@ export default function Recipes() {
                     </div>
 
                     <div className="space-y-3">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-700 mb-1">Ingredients:</h4>
-                        <p className="text-sm text-gray-600 line-clamp-3">
-                          {recipe.raw_ingredients}
-                        </p>
-                      </div>
-
                       {(recipe.primary_protein || recipe.primary_carbohydrate || recipe.primary_vegetable) && (
                         <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-1">Categories:</h4>
                           <div className="flex flex-wrap gap-1">
                             {recipe.primary_protein && (
                               <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">
