@@ -37,7 +37,7 @@ export default function SignIn() {
       <div className="max-w-md w-full space-y-8 p-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">YouFresh</h1>
-          <p className="text-gray-600 mb-8">Plan your grocery lists with AI-powered recipe management</p>
+          <p className="text-gray-600 mb-8">Your meal planning and grocery shopping assistant</p>
         </div>
         
         <div className="space-y-4">
