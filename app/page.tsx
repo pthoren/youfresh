@@ -172,22 +172,25 @@ export default function Home() {
               <div className="space-y-3">
                 <button
                   onClick={() => router.push('/recipes/new')}
-                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 text-left"
                 >
-                  Add New Recipe
+                  ➕ Add New Recipe
                 </button>
+                
+                {recipes.length >= 3 && (
+                  <button
+                    onClick={() => router.push('/suggestions')}
+                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 text-left"
+                  >
+                    🎯 Get Recipe Suggestions
+                  </button>
+                )}
+                
                 <button
                   onClick={() => router.push('/recipes')}
-                  className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200"
+                  className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 text-left"
                 >
-                  Manage Recipes
-                </button>
-                <button
-                  onClick={() => router.push('/meal-plan')}
-                  className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-                  disabled={recipes.length === 0}
-                >
-                  Plan Meals
+                  📋 View All Recipes
                 </button>
               </div>
             </div>

@@ -37,6 +37,7 @@ export interface MealPlan {
   recipe_ids: string[];
   grocery_list?: Ingredient[];
   created_at: Date;
+  updated_at: Date;
 }
 
 export interface ParsedRecipeData {
@@ -45,4 +46,10 @@ export interface ParsedRecipeData {
   primary_carbohydrate: string;
   primary_vegetable: string;
   is_valid_meal: boolean;
+}
+
+export interface RecipeSuggestion {
+  recipe: Recipe;
+  reason: string;
+  score: number;
 }

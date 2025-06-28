@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import db from '@/lib/db';
 import { openaiService } from '@/lib/openai';
 
@@ -9,7 +10,7 @@ export async function PUT(
 ) {
   try {
     const params = await context.params;
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -79,7 +80,7 @@ export async function DELETE(
 ) {
   try {
     const params = await context.params;
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
