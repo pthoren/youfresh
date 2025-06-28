@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Recipe } from '@/lib/types';
+import { Recipe, getImageUrlFromRecipe } from '@/lib/types';
 import { Trash2, Edit, Plus } from 'lucide-react';
 
 export default function Recipes() {
@@ -154,79 +154,101 @@ export default function Recipes() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRecipes.map((recipe) => (
-              <div key={recipe.id} className="bg-white rounded-lg shadow p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 flex-1 mr-2">
-                    {recipe.name}
-                  </h3>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => router.push(`/recipes/${recipe.id}/edit`)}
-                      className="text-gray-400 hover:text-blue-600"
-                      title="Edit recipe"
-                    >
-                      <Edit size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(recipe.id)}
-                      disabled={deleteLoading === recipe.id}
-                      className="text-gray-400 hover:text-red-600 disabled:opacity-50"
-                      title="Delete recipe"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
+            {filteredRecipes.map((recipe) => {
+              const imageUrl = getImageUrlFromRecipe(recipe);
+              
+              return (
+                <div key={recipe.id} className="bg-white rounded-lg shadow overflow-hidden">
+                  {/* Recipe Image */}
+                  {imageUrl && (
+                    <div className="w-full h-48 bg-gray-200">
+                      <img
+                        src={imageUrl}
+                        alt={`Image of ${recipe.name}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Hide image if it fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 flex-1 mr-2">
+                        {recipe.name}
+                      </h3>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => router.push(`/recipes/${recipe.id}/edit`)}
+                          className="text-gray-400 hover:text-blue-600"
+                          title="Edit recipe"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(recipe.id)}
+                          disabled={deleteLoading === recipe.id}
+                          className="text-gray-400 hover:text-red-600 disabled:opacity-50"
+                          title="Delete recipe"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
 
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-1">Ingredients:</h4>
-                    <p className="text-sm text-gray-600 line-clamp-3">
-                      {recipe.raw_ingredients}
-                    </p>
-                  </div>
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-700 mb-1">Ingredients:</h4>
+                        <p className="text-sm text-gray-600 line-clamp-3">
+                          {recipe.raw_ingredients}
+                        </p>
+                      </div>
 
-                  {(recipe.primary_protein || recipe.primary_carbohydrate || recipe.primary_vegetable) && (
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-1">Categories:</h4>
-                      <div className="flex flex-wrap gap-1">
-                        {recipe.primary_protein && (
-                          <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">
-                            🥩 {recipe.primary_protein}
-                          </span>
-                        )}
-                        {recipe.primary_carbohydrate && (
-                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
-                            🌾 {recipe.primary_carbohydrate}
-                          </span>
-                        )}
-                        {recipe.primary_vegetable && (
-                          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                            🥬 {recipe.primary_vegetable}
+                      {(recipe.primary_protein || recipe.primary_carbohydrate || recipe.primary_vegetable) && (
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-1">Categories:</h4>
+                          <div className="flex flex-wrap gap-1">
+                            {recipe.primary_protein && (
+                              <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">
+                                🥩 {recipe.primary_protein}
+                              </span>
+                            )}
+                            {recipe.primary_carbohydrate && (
+                              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
+                                🌾 {recipe.primary_carbohydrate}
+                              </span>
+                            )}
+                            {recipe.primary_vegetable && (
+                              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                                🥬 {recipe.primary_vegetable}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between items-center text-sm text-gray-500">
+                        <span>
+                          Ordered {recipe.total_orders} time{recipe.total_orders !== 1 ? 's' : ''}
+                        </span>
+                        {recipe.last_ordered_at && (
+                          <span>
+                            Last: {new Date(recipe.last_ordered_at).toLocaleDateString()}
                           </span>
                         )}
                       </div>
+
+                      <div className="text-xs text-gray-400">
+                        Created: {new Date(recipe.created_at).toLocaleDateString()}
+                      </div>
                     </div>
-                  )}
-
-                  <div className="flex justify-between items-center text-sm text-gray-500">
-                    <span>
-                      Ordered {recipe.total_orders} time{recipe.total_orders !== 1 ? 's' : ''}
-                    </span>
-                    {recipe.last_ordered_at && (
-                      <span>
-                        Last: {new Date(recipe.last_ordered_at).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="text-xs text-gray-400">
-                    Created: {new Date(recipe.created_at).toLocaleDateString()}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
