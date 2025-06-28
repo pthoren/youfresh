@@ -102,7 +102,7 @@ export default function Suggestions() {
     
     selectedSuggestions.forEach(suggestion => {
       if (suggestion.recipe.parsed_ingredients) {
-        allIngredients.push(...suggestion.recipe.parsed_ingredients);
+        allIngredients.push(...suggestion.recipe.parsed_ingredients.ingredients);
       }
     });
     
@@ -174,12 +174,6 @@ export default function Suggestions() {
           </div>
         ) : (
           <div>
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Here are 3 recipe suggestions for you!
-              </h2>
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {suggestions.map((suggestion, index) => {
                 return (

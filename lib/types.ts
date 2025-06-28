@@ -20,7 +20,10 @@ export interface Recipe {
   user_id: string;
   name: string;
   raw_ingredients: string;
-  parsed_ingredients?: Ingredient[];
+  parsed_ingredients?: {
+   ingredients: Ingredient[];
+   image_filename?: string;
+  }
   primary_protein?: string;
   primary_carbohydrate?: string;
   primary_vegetable?: string;
