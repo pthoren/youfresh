@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { RecipeSuggestion } from '@/lib/types';
-import { RefreshCw } from 'lucide-react';
+import { RecipeSuggestion, Ingredient } from '@/lib/types';
+import { RefreshCw, ShoppingCart } from 'lucide-react';
 
 export default function Suggestions() {
   const { data: session, status } = useSession();
@@ -13,6 +13,9 @@ export default function Suggestions() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [totalRecipes, setTotalRecipes] = useState(0);
+  const [selectedRecipes, setSelectedRecipes] = useState<Set<string>>(new Set());
+  const [groceryList, setGroceryList] = useState<Ingredient[]>([]);
+  const [showGroceryList, setShowGroceryList] = useState(false);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -35,6 +38,11 @@ export default function Suggestions() {
         const data = await response.json();
         setSuggestions(data.suggestions);
         setTotalRecipes(data.total_recipes);
+        
+        // Select all suggested recipes by default
+        const recipeIds: string[] = data.suggestions.map((s: RecipeSuggestion) => s.recipe.id);
+        const newSelection = new Set(recipeIds);
+        setSelectedRecipes(newSelection);
       } else {
         console.error('Failed to fetch suggestions');
       }
@@ -48,7 +56,58 @@ export default function Suggestions() {
 
   const handleRefresh = () => {
     setRefreshing(true);
+    setSelectedRecipes(new Set());
+    setShowGroceryList(false);
     fetchSuggestions();
+  };
+
+  const toggleRecipeSelection = (recipeId: string) => {
+    const newSelection = new Set(selectedRecipes);
+    if (newSelection.has(recipeId)) {
+      newSelection.delete(recipeId);
+    } else {
+      newSelection.add(recipeId);
+    }
+    setSelectedRecipes(newSelection);
+  };
+
+  const consolidateIngredients = (ingredients: Ingredient[]): Ingredient[] => {
+    const consolidated: { [key: string]: Ingredient } = {};
+    
+    ingredients.forEach(ingredient => {
+      const key = ingredient.name.toLowerCase().trim();
+      
+      if (consolidated[key]) {
+        // Try to combine quantities if units match
+        if (consolidated[key].unit === ingredient.unit) {
+          const existing = parseFloat(consolidated[key].quantity) || 0;
+          const additional = parseFloat(ingredient.quantity) || 0;
+          consolidated[key].quantity = (existing + additional).toString();
+        } else {
+          // Different units, keep separate with a note
+          consolidated[key].quantity += ` + ${ingredient.quantity} ${ingredient.unit}`;
+        }
+      } else {
+        consolidated[key] = { ...ingredient };
+      }
+    });
+    
+    return Object.values(consolidated).sort((a, b) => a.name.localeCompare(b.name));
+  };
+
+  const generateGroceryList = () => {
+    const selectedSuggestions = suggestions.filter(s => selectedRecipes.has(s.recipe.id));
+    const allIngredients: Ingredient[] = [];
+    
+    selectedSuggestions.forEach(suggestion => {
+      if (suggestion.recipe.parsed_ingredients) {
+        allIngredients.push(...suggestion.recipe.parsed_ingredients);
+      }
+    });
+    
+    const consolidatedList = consolidateIngredients(allIngredients);
+    setGroceryList(consolidatedList);
+    setShowGroceryList(true);
   };
 
   if (status === 'loading' || loading) {
@@ -122,11 +181,19 @@ export default function Suggestions() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {suggestions.map((suggestion, index) => (
-                <div key={suggestion.recipe.id} className="bg-white rounded-lg shadow-lg p-6">
-
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {suggestion.recipe.name}
-                  </h3>
+                <div key={suggestion.recipe.id} className="bg-white rounded-lg shadow-lg p-6 relative">
+                  {/* Selection Checkbox */}
+                  <div className="flex items-center gap-4 mb-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedRecipes.has(suggestion.recipe.id)}
+                      onChange={() => toggleRecipeSelection(suggestion.recipe.id)}
+                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                    <h3 className="text-xl font-semibold text-gray-900 pr-8">
+                      {suggestion.recipe.name}
+                    </h3>
+                  </div>
 
                   {/* Recipe Categories */}
                   <div className="mb-4">
@@ -167,32 +234,93 @@ export default function Suggestions() {
                     >
                       View Recipe
                     </button>
-                    <button
-                      className="flex-1 bg-green-600 text-white py-2 px-3 rounded text-sm hover:bg-green-700"
-                      onClick={() => {
-                        // TODO: Add to meal plan functionality
-                        alert('Add to meal plan feature coming soon!');
-                      }}
-                    >
-                      Add to Plan
-                    </button>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-8 text-center">
-              <p className="text-gray-600 mb-4">
-                Don't like these suggestions?
-              </p>
-              <button
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
-                {refreshing ? 'Getting New Suggestions...' : 'Get Different Suggestions'}
-              </button>
+            {/* Action Buttons */}
+            <div className="mt-8 space-y-4">
+              {selectedRecipes.size > 0 && (
+                <div className="text-center">
+                  <button
+                    onClick={generateGroceryList}
+                    className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center space-x-2 mx-auto"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    <span>Generate Grocery List ({selectedRecipes.size} recipes)</span>
+                  </button>
+                </div>
+              )}
+              
+              <div className="text-center">
+                <p className="text-gray-600 mb-4">
+                  Don't like these suggestions?
+                </p>
+                <button
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {refreshing ? 'Getting New Suggestions...' : 'Get Different Suggestions'}
+                </button>
+              </div>
             </div>
+
+            {/* Grocery List Modal/Section */}
+            {showGroceryList && (
+              <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">Your Grocery List</h3>
+                  <button
+                    onClick={() => setShowGroceryList(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {groceryList.length > 0 ? (
+                  <div className="space-y-2">
+                    {groceryList.map((ingredient, index) => (
+                      <div key={index} className="flex items-center gap-4 py-3 border-b border-gray-100">
+                        <span className="text-gray-600">
+                          {ingredient.quantity} {ingredient.unit}
+                        </span>
+                        <span className="font-medium">{ingredient.name}</span>
+
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">No ingredients found in selected recipes.</p>
+                )}
+
+                <div className="mt-6 flex space-x-3">
+                  <button
+                    onClick={() => {
+                      const listText = groceryList
+                        .map(item => `${item.quantity} ${item.unit} ${item.name}`)
+                        .join('\n');
+                      navigator.clipboard.writeText(listText);
+                      alert('Grocery list copied to clipboard!');
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  >
+                    Copy to Clipboard
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Future: Save meal plan to database
+                      alert('Save meal plan feature coming soon!');
+                    }}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                  >
+                    Save Meal Plan
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>

@@ -182,7 +182,7 @@ export default function Home() {
                     onClick={() => router.push('/suggestions')}
                     className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 text-left"
                   >
-                    🎯 Suggest meals
+                    🎯 Suggest Meals
                   </button>
                 )}
                 
