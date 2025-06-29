@@ -1,11 +1,11 @@
 // app/api/kroger/add-to-cart/route.ts
 import {
+  getCookie,
   getAppToken,
   getLocationId,
   searchUpc,
   addToCart,
 } from "@/lib/kroger";
-import { getUserToken as getStoredUserToken, generateSessionId } from "@/lib/tokenStore";
 import { NextRequest, NextResponse } from "next/server";
 
 function normalize(line: string) {
@@ -14,23 +14,20 @@ function normalize(line: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    // Generate session ID from request info
-    const userAgent = req.headers.get('user-agent') || 'unknown';
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-    const sessionId = generateSessionId(userAgent, ip);
+    // Check if user has a valid Kroger token - try multiple methods
+    let userToken = await getCookie("kroger_user_token");
     
-    // Try to get session ID from cookie as backup
-    const cookieSessionId = req.cookies.get("kroger_session_id")?.value;
-    const finalSessionId = cookieSessionId || sessionId;
+    // Fallback: try reading from request cookies directly
+    if (!userToken) {
+      userToken = req.cookies.get("kroger_user_token")?.value;
+    }
     
-    // Get user token from database-backed token store
-    const userToken = await getStoredUserToken(finalSessionId);
-    
-    console.log('Session ID:', finalSessionId);
     console.log('Kroger user token found:', !!userToken);
+    console.log('Request host:', req.headers.get('host'));
+    console.log('Request cookies:', req.cookies.getAll().map(c => c.name));
     
     if (!userToken) {
-      console.log('No Kroger user token found in database');
+      console.log('No Kroger user token found in cookies');
       return NextResponse.json(
         { error: "Not authenticated with Kroger" },
         { status: 401 }

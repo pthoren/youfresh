@@ -2,8 +2,8 @@
 import {
   getCookie,
   getUserToken,
+  setCookie,
 } from "@/lib/kroger";
-import { storeUserToken, generateSessionId } from "@/lib/tokenStore";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -18,30 +18,26 @@ export async function GET(req: NextRequest) {
   try {
     const userToken = await getUserToken(code, verifier);
     
-    // Generate a session ID from request info
-    const userAgent = req.headers.get('user-agent') || 'unknown';
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-    const sessionId = generateSessionId(userAgent, ip);
+    console.log('Successfully obtained Kroger user token');
+    console.log('Cookie domain:', req.headers.get('host'));
+    console.log('Environment:', process.env.NODE_ENV);
     
-    // Store the token in our database-backed token store
-    await storeUserToken(sessionId, userToken);
-    
-    console.log('Successfully stored Kroger user token with session ID:', sessionId);
-    
-    // Create response with redirect and store session ID in cookie
+    // Create response with redirect
     const redirectUrl = new URL('/suggestions?kroger_auth=success', req.url);
     const response = NextResponse.redirect(redirectUrl);
     
-    // Store session ID in a cookie so we can retrieve the token later
+    // Set the cookie directly on the response object
     response.cookies.set({
-      name: "kroger_session_id",
-      value: sessionId,
+      name: "kroger_user_token",
+      value: userToken,
       httpOnly: true,
       path: "/",
       maxAge: 1800, // 30 minutes
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production"
     });
+    
+    console.log('Cookie set on response');
     
     return response;
   } catch (error) {
