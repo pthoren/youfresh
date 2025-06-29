@@ -4,6 +4,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Recipe } from '@/lib/types';
+import RecipeImage from '@/components/RecipeImage';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -132,10 +133,19 @@ export default function Home() {
                     {recipes.slice(0, 5).map((recipe) => (
                       <div
                         key={recipe.id}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                        className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                       >
-                        <div>
-                          <h4 className="font-medium text-gray-900">{recipe.name}</h4>
+                        {/* Recipe Image */}
+                        <div className="flex-shrink-0">
+                          <RecipeImage 
+                            recipe={recipe} 
+                            className="w-16 h-16 rounded-lg"
+                          />
+                        </div>
+                        
+                        {/* Recipe Info */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 truncate">{recipe.name}</h4>
                           <p className="text-sm text-gray-500">
                             {recipe.total_orders > 0 
                               ? `Ordered ${recipe.total_orders} times`
@@ -143,12 +153,16 @@ export default function Home() {
                             }
                           </p>
                         </div>
-                        <button
-                          onClick={() => router.push(`/recipes/${recipe.id}/edit`)}
-                          className="text-blue-600 hover:text-blue-800 text-sm"
-                        >
-                          Edit
-                        </button>
+                        
+                        {/* Action Button */}
+                        <div className="flex-shrink-0">
+                          <button
+                            onClick={() => router.push(`/recipes/${recipe.id}/edit`)}
+                            className="text-blue-600 hover:text-blue-800 text-sm px-3 py-1 rounded hover:bg-blue-50"
+                          >
+                            Edit
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
