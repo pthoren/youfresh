@@ -132,7 +132,7 @@ export default function NewRecipe() {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-600"
                 placeholder="Enter recipe name..."
               />
             </div>
@@ -154,11 +154,11 @@ export default function NewRecipe() {
                     setShowParsed(false);
                   }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-600"
                 placeholder="Enter ingredients in any format, for example:&#10;&#10;2 cups flour&#10;1 lb chicken breast&#10;3 large carrots, diced&#10;1 onion, chopped&#10;2 tbsp olive oil&#10;&#10;The AI will parse these into structured data automatically."
               />
               <div className="mt-3 flex justify-between items-center">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-700">
                   Enter ingredients in any format. The AI will automatically parse them into structured data with quantities and units.
                 </p>
                 <button
@@ -206,19 +206,19 @@ export default function NewRecipe() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div className="bg-white rounded-lg p-3 border">
                     <h4 className="font-medium text-gray-900 mb-1">Primary Protein</h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-800">
                       {parsedData.primary_protein || 'None identified'}
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
                     <h4 className="font-medium text-gray-900 mb-1">Primary Carbohydrate</h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-800">
                       {parsedData.primary_carbohydrate || 'None identified'}
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
                     <h4 className="font-medium text-gray-900 mb-1">Primary Vegetable</h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-800">
                       {parsedData.primary_vegetable || 'None identified'}
                     </p>
                   </div>
@@ -241,8 +241,8 @@ export default function NewRecipe() {
                           {parsedData.ingredients.map((ingredient, index) => (
                             <tr key={index} className="border-t border-gray-100">
                               <td className="p-3 text-gray-900">{ingredient.name}</td>
-                              <td className="p-3 text-gray-600">{ingredient.quantity}</td>
-                              <td className="p-3 text-gray-600">{ingredient.unit}</td>
+                              <td className="p-3 text-gray-800">{ingredient.quantity}</td>
+                              <td className="p-3 text-gray-800">{ingredient.unit}</td>
                             </tr>
                           ))}
                         </tbody>

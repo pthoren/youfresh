@@ -373,7 +373,7 @@ export default function Suggestions() {
         {suggestions.length === 0 && totalRecipes >= 1 ? (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
             <h2 className="text-lg font-semibold text-gray-800 mb-2">No Suggestions Available</h2>
-            <p className="text-gray-600">
+            <p className="text-gray-700">
               Unable to generate suggestions at this time. Try refreshing or add more recipes.
             </p>
           </div>
@@ -428,7 +428,7 @@ export default function Suggestions() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-500">Previously shown: {previouslyShown.size}</p>
+                  <p className="text-sm text-gray-700">Previously shown: {previouslyShown.size}</p>
                   <button
                     onClick={() => setPreviouslyShown(new Set())}
                     className="text-xs text-blue-600 hover:text-blue-800"
@@ -485,7 +485,7 @@ export default function Suggestions() {
                       <div className="flex-grow"></div>
 
                       {/* Recipe Stats - Fixed to bottom */}
-                      <div className="text-sm text-gray-500 mb-4 space-y-1">
+                      <div className="text-sm text-gray-700 mb-4 space-y-1">
                         <p>Ordered {suggestion.recipe.total_orders} times</p>
                         {suggestion.recipe.last_ordered_at && (
                           <p>
@@ -531,7 +531,7 @@ export default function Suggestions() {
                       <div className="space-y-2">
                         {groceryList.map((ingredient, index) => (
                           <div key={index} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-b-0">
-                            <span className="text-gray-600 min-w-[80px]">
+                            <span className="text-gray-800 min-w-[80px]">
                               {ingredient.quantity} {ingredient.unit}
                             </span>
                             <span className="font-medium text-gray-900">{ingredient.name}</span>
@@ -539,7 +539,7 @@ export default function Suggestions() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-center py-8">No ingredients found in selected recipes.</p>
+                      <p className="text-gray-700 text-center py-8">No ingredients found in selected recipes.</p>
                     )}
                   </div>
 

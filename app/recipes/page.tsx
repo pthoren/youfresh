@@ -126,13 +126,13 @@ export default function Recipes() {
             placeholder="Search recipes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-600"
           />
         </div>
 
         {/* Recipe Count */}
         <div className="mb-6">
-          <p className="text-gray-600">
+          <p className="text-gray-700">
             {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? 's' : ''} found
           </p>
         </div>
@@ -143,7 +143,7 @@ export default function Recipes() {
             <div className="bg-white rounded-lg shadow p-8">
               {searchTerm ? (
                 <>
-                  <p className="text-gray-500 mb-4">No recipes found matching "{searchTerm}"</p>
+                  <p className="text-gray-700 mb-4">No recipes found matching "{searchTerm}"</p>
                   <button
                     onClick={() => setSearchTerm('')}
                     className="text-blue-600 hover:text-blue-800"
@@ -153,7 +153,7 @@ export default function Recipes() {
                 </>
               ) : (
                 <>
-                  <p className="text-gray-500 mb-4">You don't have any recipes yet.</p>
+                  <p className="text-gray-700 mb-4">You don't have any recipes yet.</p>
                   <button
                     onClick={() => router.push('/recipes/new')}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -219,7 +219,7 @@ export default function Recipes() {
                         </div>
                       )}
 
-                      <div className="flex justify-between items-center text-sm text-gray-500">
+                      <div className="flex justify-between items-center text-sm text-gray-700">
                         <span>
                           Ordered {recipe.total_orders} time{recipe.total_orders !== 1 ? 's' : ''}
                         </span>

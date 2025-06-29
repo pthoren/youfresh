@@ -140,7 +140,7 @@ export default function Home() {
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
                     Ready to get started?
                   </h3>
-                  <p className="text-gray-500 mb-4">
+                  <p className="text-gray-700 mb-4">
                     You don't have any recipes yet. Use the "Add New Recipe" button above to create your first recipe!
                   </p>
                 </div>
@@ -166,7 +166,7 @@ export default function Home() {
                         {/* Recipe Info */}
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium text-gray-900 truncate">{recipe.name}</h4>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-700">
                             {recipe.total_orders > 0 
                               ? `Ordered ${recipe.total_orders} times`
                               : 'Never ordered'
@@ -219,11 +219,11 @@ export default function Home() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Total Recipes:</span>
-                    <span className="font-medium">{recipes.length}</span>
+                    <span className="font-medium text-gray-900">{recipes.length}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Most Ordered:</span>
-                    <span className="font-medium">
+                    <span className="font-medium text-gray-900">
                       {recipes.length > 0 
                         ? recipes.reduce((prev, current) => 
                             prev.total_orders > current.total_orders ? prev : current
