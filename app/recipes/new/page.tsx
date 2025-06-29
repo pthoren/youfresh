@@ -132,7 +132,7 @@ export default function NewRecipe() {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-600 focus:placeholder-transparent"
                 placeholder="Enter recipe name..."
               />
             </div>
@@ -154,7 +154,7 @@ export default function NewRecipe() {
                     setShowParsed(false);
                   }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-600 focus:placeholder-transparent"
                 placeholder="Enter ingredients in any format, for example:&#10;&#10;2 cups flour&#10;1 lb chicken breast&#10;3 large carrots, diced&#10;1 onion, chopped&#10;2 tbsp olive oil&#10;&#10;The AI will parse these into structured data automatically."
               />
               <div className="mt-3 flex justify-between items-center">
