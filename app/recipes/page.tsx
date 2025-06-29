@@ -159,7 +159,7 @@ export default function Recipes() {
               return (
                 <div key={recipe.id} className="bg-white rounded-lg shadow overflow-hidden">
                   {/* Recipe Image with Loading Animation */}
-                  <RecipeImage recipe={recipe} className="w-full h-48" />
+                  <RecipeImage recipe={recipe} />
                   
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-4">

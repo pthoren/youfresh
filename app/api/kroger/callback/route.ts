@@ -2,30 +2,9 @@
 import {
   getCookie,
   getUserToken,
-  getAppToken,
-  getLocationId,
-  searchUpc,
-  addToCart,
+  setCookie,
 } from "@/lib/kroger";
 import { NextRequest, NextResponse } from "next/server";
-
-const LIST = [
-  "1 head broccoli",
-  "1 cup cheese",
-  "1 lb ground beef",
-  "1 lb impossible meat",
-  "1 box lasagna noodles",
-  "1 onion",
-  "1 box pasta",
-  "1 cup rice",
-  "1 package spinach",
-  "2 can strained tomatoes",
-  "1 block tofu",
-];
-
-function normalize(line: string) {
-  return line.replace(/^\d+\s+\w+\s+/i, "").trim();
-}
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -35,22 +14,34 @@ export async function GET(req: NextRequest) {
 
   const code = url.searchParams.get("code")!;
   const verifier = (await getCookie("kroger_pkce_verifier"))!;
-  const userToken = await getUserToken(code, verifier);
-
-  const appToken = await getAppToken();
-  const locId = await getLocationId(process.env.ZIP!, appToken);
-
-  const upcPromises = LIST.map(line => searchUpc(normalize(line), locId, appToken));
-  const upcResults = await Promise.all(upcPromises);
-  const upcs = upcResults.filter(upc => upc !== null && upc !== undefined);
-
-  if (upcs.length > 0) {
-    await addToCart(upcs, userToken);
-      return new NextResponse(
-    "🎉  Items are waiting in your Kroger cart. Open the Kroger app or kroger.com to check out!"
-  );
-  } else {
-    return new NextResponse("Unable to find items to add to cart");
+  
+  try {
+    const userToken = await getUserToken(code, verifier);
+    
+    // Store the user token for later use with longer expiration (30 minutes)
+    await setCookie("kroger_user_token", userToken, 1800);
+    
+    console.log('Successfully stored Kroger user token');
+    console.log('Cookie domain:', req.headers.get('host'));
+    
+    // Create response with redirect
+    const redirectUrl = new URL('/suggestions?kroger_auth=success', req.url);
+    const response = NextResponse.redirect(redirectUrl);
+    
+    // Also set the cookie directly on the response as a backup
+    response.cookies.set({
+      name: "kroger_user_token",
+      value: userToken,
+      httpOnly: true,
+      path: "/",
+      maxAge: 1800,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production"
+    });
+    
+    return response;
+  } catch (error) {
+    console.error('Error getting user token:', error);
+    return NextResponse.redirect(new URL('/suggestions?kroger_auth=error', req.url));
   }
-
 }

@@ -19,6 +19,7 @@ export default function Suggestions() {
   const [showGroceryList, setShowGroceryList] = useState(false);
   const [previouslyShown, setPreviouslyShown] = useState<Set<string>>(new Set());
   const [strategy, setStrategy] = useState<'balanced' | 'random' | 'fresh' | 'favorites'>('balanced');
+  const [addingToCart, setAddingToCart] = useState(false);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -30,6 +31,58 @@ export default function Suggestions() {
 
     fetchSuggestions();
   }, [session, status, router]);
+
+  // Handle Kroger OAuth return
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const krogerAuth = urlParams.get('kroger_auth');
+    
+    if (krogerAuth === 'success') {
+      // Try to add items to cart now that user is authenticated
+      const pendingList = sessionStorage.getItem('pendingGroceryList');
+      if (pendingList) {
+        try {
+          const parsedList = JSON.parse(pendingList);
+          setGroceryList(parsedList);
+          // Add items to cart automatically
+          setTimeout(() => {
+            handleAddToCartAfterAuth(parsedList);
+          }, 500);
+          sessionStorage.removeItem('pendingGroceryList');
+        } catch (error) {
+          console.error('Error parsing pending grocery list:', error);
+        }
+      }
+      // Clean up URL
+      router.replace('/suggestions');
+    } else if (krogerAuth === 'error') {
+      alert('Failed to authenticate with Kroger. Please try again.');
+      sessionStorage.removeItem('pendingGroceryList');
+      // Clean up URL
+      router.replace('/suggestions');
+    }
+  }, []);
+
+  const handleAddToCartAfterAuth = async (listToAdd: Ingredient[]) => {
+    try {
+      const response = await fetch('/api/kroger/add-to-cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groceryList: listToAdd })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`🎉 Successfully added ${result.itemsAdded} out of ${result.totalItems} items to your Kroger cart! Open the Kroger app or kroger.com to check out.`);
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error adding to cart after auth:', error);
+      alert('Failed to add items to cart. Please try again.');
+    }
+  };
 
   const fetchSuggestions = async (newStrategy?: string, excludeIds?: string[]) => {
     const wasRefreshing = refreshing;
@@ -143,6 +196,53 @@ export default function Suggestions() {
     const consolidatedList = consolidateIngredients(allIngredients);
     setGroceryList(consolidatedList);
     setShowGroceryList(true);
+  };
+
+  const handleAddToCart = async () => {
+    if (groceryList.length === 0) {
+      alert('Please generate a grocery list first');
+      return;
+    }
+
+    setAddingToCart(true);
+    
+    try {
+      // Check if user is already authenticated with Kroger
+      const checkAuthResponse = await fetch('/api/kroger/add-to-cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groceryList })
+      });
+
+      if (checkAuthResponse.status === 401) {
+        // User not authenticated, store grocery list and redirect to Kroger OAuth
+        sessionStorage.setItem('pendingGroceryList', JSON.stringify(groceryList));
+        
+        // Store grocery list in cookie via API call, then redirect
+        await fetch('/api/kroger/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ groceryList })
+        });
+        
+        // Direct redirect to start the OAuth flow
+        window.location.href = '/api/kroger/start';
+        return;
+      } else if (checkAuthResponse.ok) {
+        // Successfully added to cart
+        const result = await checkAuthResponse.json();
+        alert(`🎉 Successfully added ${result.itemsAdded} out of ${result.totalItems} items to your Kroger cart! Open the Kroger app or kroger.com to check out.`);
+      } else {
+        // Other error
+        const error = await checkAuthResponse.json();
+        alert(`Error: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      alert('Failed to add items to cart. Please try again.');
+    } finally {
+      setAddingToCart(false);
+    }
   };
 
   if (status === 'loading' || loading) {
@@ -372,64 +472,64 @@ export default function Suggestions() {
 
             {/* Grocery List Modal */}
             {showGroceryList && (
-              <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+              <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4"
+                   onClick={(e) => e.target === e.currentTarget && setShowGroceryList(false)}>
                 <div 
                   className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden border-2 border-gray-200"
                   onClick={(e) => e.stopPropagation()}
                 >
-                    <div className="flex justify-between items-center p-6 border-b">
-                      <h3 className="text-xl font-semibold text-gray-900">Your Grocery List</h3>
-                      <button
-                        onClick={() => setShowGroceryList(false)}
-                        className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-                      >
-                        ✕
-                      </button>
-                    </div>
+                  <div className="flex justify-between items-center p-6 border-b">
+                    <h3 className="text-xl font-semibold text-gray-900">Your Grocery List</h3>
+                    <button
+                      onClick={() => setShowGroceryList(false)}
+                      className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                    >
+                      ✕
+                    </button>
+                  </div>
 
-                    <div className="p-6 overflow-y-auto max-h-[60vh]">
-                      {groceryList.length > 0 ? (
-                        <div className="space-y-2">
-                          {groceryList.map((ingredient, index) => (
-                            <div key={index} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-b-0">
-                              <span className="text-gray-600 min-w-[80px]">
-                                {ingredient.quantity} {ingredient.unit}
-                              </span>
-                              <span className="font-medium text-gray-900">{ingredient.name}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-gray-500 text-center py-8">No ingredients found in selected recipes.</p>
-                      )}
-                    </div>
+                  <div className="p-6 overflow-y-auto max-h-[60vh]">
+                    {groceryList.length > 0 ? (
+                      <div className="space-y-2">
+                        {groceryList.map((ingredient, index) => (
+                          <div key={index} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-b-0">
+                            <span className="text-gray-600 min-w-[80px]">
+                              {ingredient.quantity} {ingredient.unit}
+                            </span>
+                            <span className="font-medium text-gray-900">{ingredient.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">No ingredients found in selected recipes.</p>
+                    )}
+                  </div>
 
-                    <div className="p-6 border-t bg-gray-50 flex space-x-3">
-                      <button
-                        onClick={() => {
-                          const listText = groceryList
-                            .map(item => `${item.quantity} ${item.unit} ${item.name}`)
-                            .join('\n');
-                          navigator.clipboard.writeText(listText);
-                          alert('Grocery list copied to clipboard!');
-                        }}
-                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        Copy to Clipboard
-                      </button>
-                      <button
-                        onClick={() => {
-                          // Future: Save meal plan to database
-                          alert('Save meal plan feature coming soon!');
-                        }}
-                        className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                      >
-                        Save Meal Plan
-                      </button>
-                    </div>
+                  <div className="p-6 border-t bg-gray-50 flex space-x-3">
+                    <button
+                      onClick={() => {
+                        const listText = groceryList
+                          .map(item => `${item.quantity} ${item.unit} ${item.name}`)
+                          .join('\n');
+                        navigator.clipboard.writeText(listText);
+                        alert('Grocery list copied to clipboard!');
+                      }}
+                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Copy to Clipboard
+                    </button>
+                    <button
+                      onClick={handleAddToCart}
+                      disabled={addingToCart}
+                      className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                      <span>{addingToCart ? 'Adding...' : 'Add to Cart'}</span>
+                    </button>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
           </div>
         )}
       </main>
