@@ -95,13 +95,24 @@ export default function Recipes() {
               </button>
               <h1 className="text-xl font-semibold text-gray-900">My Recipes</h1>
             </div>
-            <button
-              onClick={() => router.push('/recipes/new')}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-            >
-              <Plus size={20} />
-              <span>Add Recipe</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => router.push('/recipes/new')}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+              >
+                <Plus size={20} />
+                <span>Add Recipe</span>
+              </button>
+              {recipes.length >= 1 && (
+                <button
+                  onClick={() => router.push('/suggestions')}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2"
+                >
+                  <span>📋</span>
+                  <span>Plan Your Meals</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </header>
