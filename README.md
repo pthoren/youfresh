@@ -1,4 +1,6 @@
-# YouFresh - AI-Powered Grocery Planning App
+# YouFresh - Your recipes, delivered
+
+# Note: This is an almost entirely vibe coded app, including the README below and the specs.
 
 YouFresh is a Next.js web application that helps users plan their grocery lists by managing recipes and automatically generating shopping lists using AI.
 
