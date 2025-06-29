@@ -309,7 +309,7 @@ export default function Suggestions() {
               >
                 ← Back
               </button>
-              <h1 className="text-xl font-semibold text-gray-900">Recipe Suggestions</h1>
+              <h1 className="text-xl font-semibold text-gray-900">Plan Your Meals</h1>
             </div>
             <div className="flex items-center space-x-3">
               {selectedRecipes.size > 0 && (
@@ -383,7 +383,7 @@ export default function Suggestions() {
             <div className="mb-6 bg-white rounded-lg shadow p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Suggestion Strategy</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Meal Selection Strategy</h3>
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => changeStrategy('balanced')}

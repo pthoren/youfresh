@@ -90,7 +90,7 @@ export default function Home() {
               Recipes
             </button>
             <button
-              onClick={() => router.push('/meal-plan')}
+              onClick={() => router.push('/suggestions')}
               className="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-sm font-medium"
             >
               Meal Plan
@@ -123,7 +123,7 @@ export default function Home() {
                   onClick={() => router.push('/suggestions')}
                   className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 font-medium text-center transition-colors"
                 >
-                  🎯 Get Recipe Suggestions
+                  📋 Plan Your Meals
                 </button>
               )}
             </div>
@@ -209,12 +209,6 @@ export default function Home() {
                   className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 text-left"
                 >
                   📋 View All Recipes
-                </button>
-                <button
-                  onClick={() => router.push('/meal-plan')}
-                  className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 text-left"
-                >
-                  � Meal Plan
                 </button>
               </div>
             </div>
