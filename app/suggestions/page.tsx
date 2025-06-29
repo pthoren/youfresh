@@ -17,6 +17,8 @@ export default function Suggestions() {
   const [selectedRecipes, setSelectedRecipes] = useState<Set<string>>(new Set());
   const [groceryList, setGroceryList] = useState<Ingredient[]>([]);
   const [showGroceryList, setShowGroceryList] = useState(false);
+  const [previouslyShown, setPreviouslyShown] = useState<Set<string>>(new Set());
+  const [strategy, setStrategy] = useState<'balanced' | 'random' | 'fresh' | 'favorites'>('balanced');
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -29,16 +31,23 @@ export default function Suggestions() {
     fetchSuggestions();
   }, [session, status, router]);
 
-  const fetchSuggestions = async () => {
+  const fetchSuggestions = async (newStrategy?: string, excludeIds?: string[]) => {
     const wasRefreshing = refreshing;
     if (!wasRefreshing) setLoading(true);
     
     try {
-      const response = await fetch('/api/recipes/suggestions?count=3');
+      const currentStrategy = newStrategy || strategy;
+      const excludeParams = excludeIds?.length ? `&exclude=${excludeIds.join(',')}` : '';
+      const response = await fetch(`/api/recipes/suggestions?count=3&strategy=${currentStrategy}${excludeParams}`);
+      
       if (response.ok) {
         const data = await response.json();
         setSuggestions(data.suggestions);
         setTotalRecipes(data.total_recipes);
+        
+        // Track newly shown recipes
+        const newlyShown = data.suggestions.map((s: RecipeSuggestion) => s.recipe.id);
+        setPreviouslyShown(prev => new Set([...prev, ...newlyShown]));
         
         // Select all suggested recipes by default
         const recipeIds: string[] = data.suggestions.map((s: RecipeSuggestion) => s.recipe.id);
@@ -59,7 +68,17 @@ export default function Suggestions() {
     setRefreshing(true);
     setSelectedRecipes(new Set());
     setShowGroceryList(false);
-    fetchSuggestions();
+    // Exclude previously shown recipes for more variety
+    fetchSuggestions(strategy, Array.from(previouslyShown));
+  };
+
+  const changeStrategy = async (newStrategy: 'balanced' | 'random' | 'fresh' | 'favorites') => {
+    setStrategy(newStrategy);
+    setRefreshing(true);
+    setSelectedRecipes(new Set());
+    setShowGroceryList(false);
+    await fetchSuggestions(newStrategy, []);
+    setRefreshing(false);
   };
 
   const toggleRecipeSelection = (recipeId: string) => {
@@ -189,6 +208,66 @@ export default function Suggestions() {
           </div>
         ) : (
           <div>
+            {/* Strategy Selector */}
+            <div className="mb-6 bg-white rounded-lg shadow p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Suggestion Strategy</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => changeStrategy('balanced')}
+                      className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                        strategy === 'balanced' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      🎯 Balanced
+                    </button>
+                    <button
+                      onClick={() => changeStrategy('random')}
+                      className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                        strategy === 'random' 
+                          ? 'bg-purple-600 text-white' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      🎲 Random
+                    </button>
+                    <button
+                      onClick={() => changeStrategy('fresh')}
+                      className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                        strategy === 'fresh' 
+                          ? 'bg-green-600 text-white' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      🌱 Fresh Picks
+                    </button>
+                    <button
+                      onClick={() => changeStrategy('favorites')}
+                      className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                        strategy === 'favorites' 
+                          ? 'bg-orange-600 text-white' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      ⭐ Favorites
+                    </button>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-500">Previously shown: {previouslyShown.size}</p>
+                  <button
+                    onClick={() => setPreviouslyShown(new Set())}
+                    className="text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    Reset history
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {suggestions.map((suggestion, index) => {
                 return (

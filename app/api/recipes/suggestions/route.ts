@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const count = parseInt(searchParams.get('count') || '3');
+    const strategy = searchParams.get('strategy') || 'balanced';
+    const excludeIds = searchParams.get('exclude')?.split(',').filter(Boolean) || [];
 
     // Get user's recipes
     const recipes = await db('recipes')
@@ -49,8 +51,11 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Get suggestions using the service
-    const suggestions = recipeSuggestionService.suggestRecipes(formattedRecipes, count);
+    // Get suggestions using the service with new options
+    const suggestions = recipeSuggestionService.suggestRecipes(formattedRecipes, count, {
+      excludeRecipeIds: excludeIds,
+      strategy: strategy as 'balanced' | 'random' | 'fresh' | 'favorites'
+    });
 
     return NextResponse.json({
       suggestions,
