@@ -157,8 +157,9 @@ export default function Suggestions() {
           const additional = parseFloat(ingredient.quantity) || 0;
           consolidated[key].quantity = (existing + additional).toString();
         } else {
-          // Different units, keep separate with a note
-          consolidated[key].quantity += ` + ${ingredient.quantity} ${ingredient.unit}`;
+          // Different units, show as separate line items
+          consolidated[key].quantity = `${consolidated[key].quantity} ${consolidated[key].unit} + ${ingredient.quantity} ${ingredient.unit}`;
+          consolidated[key].unit = ''; // Clear unit since we have mixed units
         }
       } else {
         consolidated[key] = { ...ingredient };
@@ -172,7 +173,12 @@ export default function Suggestions() {
     const selectedSuggestions = suggestions.filter(s => selectedRecipes.has(s.recipe.id));
     const allIngredients: Ingredient[] = [];
     
+    console.log('Selected suggestions:', selectedSuggestions.length);
+    
     selectedSuggestions.forEach(suggestion => {
+      console.log('Processing recipe:', suggestion.recipe.name);
+      console.log('Raw parsed_ingredients:', suggestion.recipe.parsed_ingredients);
+      
       if (suggestion.recipe.parsed_ingredients) {
         try {
           // Handle both parsed object and JSON string formats
@@ -183,17 +189,50 @@ export default function Suggestions() {
             parsedData = suggestion.recipe.parsed_ingredients;
           }
           
-          // Check if it has ingredients array
+          console.log('Parsed data:', parsedData);
+          
+          // Check if it has ingredients array (new format)
           if (parsedData && parsedData.ingredients && Array.isArray(parsedData.ingredients)) {
+            console.log('Found ingredients array:', parsedData.ingredients);
             allIngredients.push(...parsedData.ingredients);
+          } 
+          // Handle numbered object format (current format)
+          else if (parsedData && typeof parsedData === 'object') {
+            console.log('Processing numbered object format');
+            
+            // Get all numeric keys and convert to ingredients
+            const numericKeys = Object.keys(parsedData)
+              .filter(key => !isNaN(parseInt(key)) && key !== 'image_filename')
+              .sort((a, b) => parseInt(a) - parseInt(b));
+            
+            console.log('Numeric keys found:', numericKeys);
+            
+            numericKeys.forEach(key => {
+              const ingredient = parsedData[key];
+              if (ingredient && ingredient.name && ingredient.quantity && ingredient.unit) {
+                console.log('Adding ingredient:', ingredient);
+                allIngredients.push({
+                  name: ingredient.name,
+                  quantity: ingredient.quantity,
+                  unit: ingredient.unit
+                });
+              }
+            });
+          } else {
+            console.log('No recognized ingredients format found in parsed data');
           }
         } catch (error) {
           console.error('Error parsing ingredients for recipe:', suggestion.recipe.name, error);
         }
+      } else {
+        console.log('No parsed_ingredients found for recipe:', suggestion.recipe.name);
       }
     });
     
+    console.log('All ingredients before consolidation:', allIngredients);
     const consolidatedList = consolidateIngredients(allIngredients);
+    console.log('Consolidated list:', consolidatedList);
+    
     setGroceryList(consolidatedList);
     setShowGroceryList(true);
   };
