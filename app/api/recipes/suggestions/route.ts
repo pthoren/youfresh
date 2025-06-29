@@ -28,13 +28,26 @@ export async function GET(request: NextRequest) {
       .orderBy('created_at', 'desc');
 
     // Parse JSON fields back to objects
-    const formattedRecipes = recipes.map(recipe => ({
-      ...recipe,
-      parsed_ingredients: recipe.parsed_ingredients,
-      last_ordered_at: recipe.last_ordered_at ? new Date(recipe.last_ordered_at) : null,
-      created_at: new Date(recipe.created_at),
-      updated_at: new Date(recipe.updated_at)
-    }));
+    const formattedRecipes = recipes.map(recipe => {
+      let parsedIngredients = null;
+      if (recipe.parsed_ingredients) {
+        try {
+          parsedIngredients = typeof recipe.parsed_ingredients === 'string' 
+            ? JSON.parse(recipe.parsed_ingredients) 
+            : recipe.parsed_ingredients;
+        } catch (error) {
+          console.error('Error parsing ingredients for recipe:', recipe.name, error);
+        }
+      }
+      
+      return {
+        ...recipe,
+        parsed_ingredients: parsedIngredients,
+        last_ordered_at: recipe.last_ordered_at ? new Date(recipe.last_ordered_at) : null,
+        created_at: new Date(recipe.created_at),
+        updated_at: new Date(recipe.updated_at)
+      };
+    });
 
     // Get suggestions using the service
     const suggestions = recipeSuggestionService.suggestRecipes(formattedRecipes, count);

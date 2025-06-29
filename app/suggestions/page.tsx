@@ -102,7 +102,22 @@ export default function Suggestions() {
     
     selectedSuggestions.forEach(suggestion => {
       if (suggestion.recipe.parsed_ingredients) {
-        allIngredients.push(...suggestion.recipe.parsed_ingredients.ingredients);
+        try {
+          // Handle both parsed object and JSON string formats
+          let parsedData;
+          if (typeof suggestion.recipe.parsed_ingredients === 'string') {
+            parsedData = JSON.parse(suggestion.recipe.parsed_ingredients);
+          } else {
+            parsedData = suggestion.recipe.parsed_ingredients;
+          }
+          
+          // Check if it has ingredients array
+          if (parsedData && parsedData.ingredients && Array.isArray(parsedData.ingredients)) {
+            allIngredients.push(...parsedData.ingredients);
+          }
+        } catch (error) {
+          console.error('Error parsing ingredients for recipe:', suggestion.recipe.name, error);
+        }
       }
     });
     
