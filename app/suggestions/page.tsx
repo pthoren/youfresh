@@ -172,14 +172,25 @@ export default function Suggestions() {
               </button>
               <h1 className="text-xl font-semibold text-gray-900">Recipe Suggestions</h1>
             </div>
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              <span>{refreshing ? 'Refreshing...' : 'New Suggestions'}</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              {selectedRecipes.size > 0 && (
+                <button
+                  onClick={generateGroceryList}
+                  className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  <span>Grocery List ({selectedRecipes.size})</span>
+                </button>
+              )}
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                <span>{refreshing ? 'Refreshing...' : 'New Suggestions'}</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -292,11 +303,11 @@ export default function Suggestions() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {suggestions.map((suggestion, index) => {
                 return (
-                  <div key={suggestion.recipe.id} className="bg-white rounded-lg shadow-lg overflow-hidden relative">
+                  <div key={suggestion.recipe.id} className="bg-white rounded-lg shadow-lg overflow-hidden relative flex flex-col h-full">
                     {/* Recipe Image with Loading Animation */}
                     <RecipeImage recipe={suggestion.recipe} className="w-full h-48" />
                     
-                    <div className="p-6">
+                    <div className="p-6 flex flex-col flex-grow">
                       {/* Selection Checkbox */}
                       <div className="flex items-center gap-4 mb-2">
                         <input
@@ -310,78 +321,53 @@ export default function Suggestions() {
                         </h3>
                       </div>
 
-                  {/* Recipe Categories */}
-                  <div className="mb-4">
-                    <div className="flex flex-wrap gap-2">
-                      {suggestion.recipe.primary_protein && (
-                        <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">
-                          🥩 {suggestion.recipe.primary_protein}
-                        </span>
-                      )}
-                      {suggestion.recipe.primary_carbohydrate && (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
-                          🌾 {suggestion.recipe.primary_carbohydrate}
-                        </span>
-                      )}
-                      {suggestion.recipe.primary_vegetable && (
-                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                          🥬 {suggestion.recipe.primary_vegetable}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                      {/* Recipe Categories */}
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-2">
+                          {suggestion.recipe.primary_protein && (
+                            <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">
+                              🥩 {suggestion.recipe.primary_protein}
+                            </span>
+                          )}
+                          {suggestion.recipe.primary_carbohydrate && (
+                            <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
+                              🌾 {suggestion.recipe.primary_carbohydrate}
+                            </span>
+                          )}
+                          {suggestion.recipe.primary_vegetable && (
+                            <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                              🥬 {suggestion.recipe.primary_vegetable}
+                            </span>
+                          )}
+                        </div>
+                      </div>
 
-                  {/* Recipe Stats */}
-                  <div className="text-sm text-gray-500 mb-4 space-y-1">
-                    <p>Ordered {suggestion.recipe.total_orders} times</p>
-                    {suggestion.recipe.last_ordered_at && (
-                      <p>
-                        Last made: {new Date(suggestion.recipe.last_ordered_at).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
+                      {/* Spacer to push content to bottom */}
+                      <div className="flex-grow"></div>
 
-                  {/* Actions */}
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => router.push(`/recipes/${suggestion.recipe.id}/edit`)}
-                      className="flex-1 bg-gray-100 text-gray-700 py-2 px-3 rounded text-sm hover:bg-gray-200"
-                    >
-                      View Recipe
-                    </button>
-                  </div>
+                      {/* Recipe Stats - Fixed to bottom */}
+                      <div className="text-sm text-gray-500 mb-4 space-y-1">
+                        <p>Ordered {suggestion.recipe.total_orders} times</p>
+                        {suggestion.recipe.last_ordered_at && (
+                          <p>
+                            Last made: {new Date(suggestion.recipe.last_ordered_at).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Actions - Fixed to bottom */}
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => router.push(`/recipes/${suggestion.recipe.id}/edit`)}
+                          className="flex-1 bg-gray-100 text-gray-700 py-2 px-3 rounded text-sm hover:bg-gray-200"
+                        >
+                          View Recipe
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
               })}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="mt-8 space-y-4">
-              {selectedRecipes.size > 0 && (
-                <div className="text-center">
-                  <button
-                    onClick={generateGroceryList}
-                    className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center space-x-2 mx-auto"
-                  >
-                    <ShoppingCart className="w-5 h-5" />
-                    <span>Generate Grocery List ({selectedRecipes.size} recipes)</span>
-                  </button>
-                </div>
-              )}
-              
-              <div className="text-center">
-                <p className="text-gray-600 mb-4">
-                  Don't like these suggestions?
-                </p>
-                <button
-                  onClick={handleRefresh}
-                  disabled={refreshing}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {refreshing ? 'Getting New Suggestions...' : 'Get Different Suggestions'}
-                </button>
-              </div>
             </div>
 
             {/* Grocery List Modal/Section */}
