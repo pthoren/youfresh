@@ -14,30 +14,17 @@ export function buildPkce() {
 
 export async function setCookie(name: string, value: string, maxAge: number = 600) {
   const cookieStore = await cookies();
-  const cookieOptions = { 
+  return cookieStore.set(name, value, { 
     httpOnly: true, 
     path: "/", 
     maxAge,
-    sameSite: "lax" as const,
+    sameSite: "lax",
     secure: process.env.NODE_ENV === "production"
-  };
-  
-  try {
-    return cookieStore.set(name, value, cookieOptions);
-  } catch (error) {
-    console.error(`Failed to set cookie ${name}:`, error);
-    throw error;
-  }
+  });
 }
 
 export async function getCookie(name: string) {
-  try {
-    const cookieStore = await cookies();
-    return cookieStore.get(name)?.value;
-  } catch (error) {
-    console.error(`Failed to get cookie ${name}:`, error);
-    return undefined;
-  }
+  return (await (cookies())).get(name)?.value;
 }
 
 /* ---------- Kroger token helpers ---------- */

@@ -14,17 +14,9 @@ function normalize(line: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    // Check if user has a valid Kroger token - try multiple methods
-    let userToken = await getCookie("kroger_user_token");
-    
-    // Fallback: try reading from request cookies directly
-    if (!userToken) {
-      userToken = req.cookies.get("kroger_user_token")?.value;
-    }
-    
+    // Check if user has a valid Kroger token
+    const userToken = await getCookie("kroger_user_token");
     console.log('Kroger user token found:', !!userToken);
-    console.log('Request host:', req.headers.get('host'));
-    console.log('Request cookies:', req.cookies.getAll().map(c => c.name));
     
     if (!userToken) {
       console.log('No Kroger user token found in cookies');
