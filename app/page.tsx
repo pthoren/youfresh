@@ -225,9 +225,14 @@ export default function Home() {
                     <span className="text-gray-600">Most Ordered:</span>
                     <span className="font-medium text-gray-900">
                       {recipes.length > 0 
-                        ? recipes.reduce((prev, current) => 
-                            prev.total_orders > current.total_orders ? prev : current
-                          ).name
+                        ? (() => {
+                            const mostOrdered = recipes.reduce((prev, current) => 
+                              prev.total_orders > current.total_orders ? prev : current
+                            );
+                            return mostOrdered.total_orders > 0 
+                              ? mostOrdered.name 
+                              : 'None ordered yet';
+                          })()
                         : 'None'
                       }
                     </span>
