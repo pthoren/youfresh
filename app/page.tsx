@@ -191,12 +191,12 @@ export default function Home() {
                   ➕ Add New Recipe
                 </button>
                 
-                {recipes.length >= 3 && (
+                {recipes.length >= 1 && (
                   <button
                     onClick={() => router.push('/suggestions')}
                     className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 text-left"
                   >
-                    🎯 Suggest Meals
+                    🎯 Get Recipe Suggestions
                   </button>
                 )}
                 

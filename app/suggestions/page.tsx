@@ -186,20 +186,41 @@ export default function Suggestions() {
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {totalRecipes < 3 ? (
+        {totalRecipes < 1 ? (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-            <h2 className="text-lg font-semibold text-yellow-800 mb-2">Not Enough Recipes</h2>
+            <h2 className="text-lg font-semibold text-yellow-800 mb-2">No Recipes Yet</h2>
             <p className="text-yellow-700 mb-4">
-              You need at least 3 recipes to get meaningful suggestions. You currently have {totalRecipes}.
+              You need at least 1 recipe to get suggestions. Add your first recipe to get started!
             </p>
             <button
               onClick={() => router.push('/recipes/new')}
               className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700"
             >
-              Add More Recipes
+              Add Your First Recipe
             </button>
           </div>
-        ) : suggestions.length === 0 ? (
+        ) : totalRecipes === 1 ? (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center mb-6">
+            <h2 className="text-lg font-semibold text-blue-800 mb-2">Just Getting Started!</h2>
+            <p className="text-blue-700 mb-4">
+              You have 1 recipe. While we can suggest meal planning with it, adding more recipes will give you much better variety in suggestions!
+            </p>
+            <button
+              onClick={() => router.push('/recipes/new')}
+              className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 mr-3"
+            >
+              Add More Recipes
+            </button>
+            <button
+              onClick={() => setShowGroceryList(false)}
+              className="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200"
+            >
+              Continue Anyway
+            </button>
+          </div>
+        ) : null}
+        
+        {suggestions.length === 0 && totalRecipes >= 1 ? (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
             <h2 className="text-lg font-semibold text-gray-800 mb-2">No Suggestions Available</h2>
             <p className="text-gray-600">

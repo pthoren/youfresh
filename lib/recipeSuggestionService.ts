@@ -18,6 +18,19 @@ export class RecipeSuggestionService {
     
     const { excludeRecipeIds = [], strategy = 'balanced', randomSeed } = options;
     
+    // Special handling for single recipe - allow multiple suggestions of the same recipe
+    if (allRecipes.length === 1) {
+      const recipe = allRecipes[0];
+      return Array(count).fill(null).map((_, index) => ({
+        recipe,
+        score: 100 + (Math.random() * 20),
+        reason: this.getSingleRecipeReason(recipe, index)
+      }));
+    }
+    
+    // Adjust count based on available recipes for better experience
+    const effectiveCount = Math.min(count, allRecipes.length);
+    
     // Filter out excluded recipes
     const availableRecipes = allRecipes.filter(recipe => 
       !excludeRecipeIds.includes(recipe.id)
@@ -25,7 +38,7 @@ export class RecipeSuggestionService {
     
     if (availableRecipes.length === 0) {
       // If all recipes are excluded, fall back to all recipes with random selection
-      return this.getRandomRecipes(allRecipes, count);
+      return this.getRandomRecipes(allRecipes, effectiveCount);
     }
 
     // Score each recipe based on strategy
@@ -44,9 +57,9 @@ export class RecipeSuggestionService {
     });
 
     // Apply diversity filter to avoid similar recipes
-    const diverseRecipes = this.applyDiversityFilter(scoredRecipes, count);
+    const diverseRecipes = this.applyDiversityFilter(scoredRecipes, effectiveCount);
 
-    return diverseRecipes.slice(0, count);
+    return diverseRecipes.slice(0, effectiveCount);
   }
 
   /**
@@ -170,6 +183,30 @@ export class RecipeSuggestionService {
     }
 
     return selected;
+  }
+
+  /**
+   * Get reasons for single recipe suggestions
+   */
+  private static getSingleRecipeReason(recipe: Recipe, index: number): string {
+    const reasons = [
+      "Perfect for meal prep this week!",
+      "A reliable choice you know you'll enjoy",
+      "Great option for your meal planning",
+      "This recipe works well for multiple meals",
+      "Easy to make in larger batches"
+    ];
+    
+    if (!recipe.last_ordered_at) {
+      return "Time to try your new recipe!";
+    }
+    
+    const daysSince = this.getDaysSince(new Date(recipe.last_ordered_at));
+    if (daysSince > 14) {
+      return "Haven't made this in a while - perfect timing!";
+    }
+    
+    return reasons[index % reasons.length];
   }
 
   /**
