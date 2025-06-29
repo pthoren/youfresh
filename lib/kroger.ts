@@ -12,8 +12,15 @@ export function buildPkce() {
   return { verifier, challenge };
 }
 
-export async function setCookie(name: string, value: string) {
-  return (await (cookies())).set(name, value, { httpOnly: true, path: "/", maxAge: 600 });
+export async function setCookie(name: string, value: string, maxAge: number = 600) {
+  const cookieStore = await cookies();
+  return cookieStore.set(name, value, { 
+    httpOnly: true, 
+    path: "/", 
+    maxAge,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production"
+  });
 }
 
 export async function getCookie(name: string) {

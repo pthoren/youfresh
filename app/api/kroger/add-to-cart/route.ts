@@ -16,7 +16,10 @@ export async function POST(req: NextRequest) {
   try {
     // Check if user has a valid Kroger token
     const userToken = await getCookie("kroger_user_token");
+    console.log('Kroger user token found:', !!userToken);
+    
     if (!userToken) {
+      console.log('No Kroger user token found in cookies');
       return NextResponse.json(
         { error: "Not authenticated with Kroger" },
         { status: 401 }
