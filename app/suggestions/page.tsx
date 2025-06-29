@@ -470,65 +470,62 @@ export default function Suggestions() {
               })}
             </div>
 
-            {/* Grocery List Modal/Section */}
+            {/* Grocery List Modal */}
             {showGroceryList && (
-              <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold text-gray-900">Your Grocery List</h3>
-                  <button
-                    onClick={() => setShowGroceryList(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                {groceryList.length > 0 ? (
-                  <div className="space-y-2">
-                    {groceryList.map((ingredient, index) => (
-                      <div key={index} className="flex items-center gap-4 py-3 border-b border-gray-100">
-                        <span className="text-gray-600">
-                          {ingredient.quantity} {ingredient.unit}
-                        </span>
-                        <span className="font-medium text-black">{ingredient.name}</span>
-
-                      </div>
-                    ))}
+              <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                <div 
+                  className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden border-2 border-gray-200"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex justify-between items-center p-6 border-b">
+                    <h3 className="text-xl font-semibold text-gray-900">Your Grocery List</h3>
+                    <button
+                      onClick={() => setShowGroceryList(false)}
+                      className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                    >
+                      ✕
+                    </button>
                   </div>
-                ) : (
-                  <p className="text-gray-500">No ingredients found in selected recipes.</p>
-                )}
 
-                <div className="mt-6 flex space-x-3">
-                  <button
-                    onClick={() => {
-                      const listText = groceryList
-                        .map(item => `${item.quantity} ${item.unit} ${item.name}`)
-                        .join('\n');
-                      navigator.clipboard.writeText(listText);
-                      alert('Grocery list copied to clipboard!');
-                    }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  >
-                    Copy to Clipboard
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Future: Save meal plan to database
-                      alert('Save meal plan feature coming soon!');
-                    }}
-                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-                  >
-                    Save Meal Plan
-                  </button>
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={addingToCart}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
-                  >
-                    <ShoppingCart className="w-4 h-4" />
-                    <span>{addingToCart ? 'Adding to Cart...' : 'Add to Cart'}</span>
-                  </button>
+                  <div className="p-6 overflow-y-auto max-h-[60vh]">
+                    {groceryList.length > 0 ? (
+                      <div className="space-y-2">
+                        {groceryList.map((ingredient, index) => (
+                          <div key={index} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-b-0">
+                            <span className="text-gray-600 min-w-[80px]">
+                              {ingredient.quantity} {ingredient.unit}
+                            </span>
+                            <span className="font-medium text-gray-900">{ingredient.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">No ingredients found in selected recipes.</p>
+                    )}
+                  </div>
+
+                  <div className="p-6 border-t bg-gray-50 flex space-x-3">
+                    <button
+                      onClick={() => {
+                        const listText = groceryList
+                          .map(item => `${item.quantity} ${item.unit} ${item.name}`)
+                          .join('\n');
+                        navigator.clipboard.writeText(listText);
+                        alert('Grocery list copied to clipboard!');
+                      }}
+                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Copy to Clipboard
+                    </button>
+                    <button
+                      onClick={handleAddToCart}
+                      disabled={addingToCart}
+                      className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                      <span>{addingToCart ? 'Adding...' : 'Add to Cart'}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
