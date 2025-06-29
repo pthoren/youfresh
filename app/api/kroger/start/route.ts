@@ -1,9 +1,14 @@
 // app/api/kroger/start/route.ts
-import { buildPkce } from "@/lib/kroger";
+import { buildPkce, setCookie } from "@/lib/kroger";
 import { randomBytes } from "crypto";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+async function handleKrogerAuth(groceryList?: any[]) {
+  // Store grocery list if provided
+  if (groceryList) {
+    await setCookie("grocery_list", JSON.stringify(groceryList));
+  }
+  
   const { verifier, challenge } = buildPkce();
   const state = randomBytes(12).toString("hex");
 
@@ -38,4 +43,13 @@ export async function GET() {
     maxAge: 600,
   });
   return res;
+}
+
+export async function POST(req: NextRequest) {
+  const { groceryList } = await req.json();
+  return handleKrogerAuth(groceryList);
+}
+
+export async function GET(req: NextRequest) {
+  return handleKrogerAuth();
 }

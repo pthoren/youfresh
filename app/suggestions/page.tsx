@@ -19,6 +19,7 @@ export default function Suggestions() {
   const [showGroceryList, setShowGroceryList] = useState(false);
   const [previouslyShown, setPreviouslyShown] = useState<Set<string>>(new Set());
   const [strategy, setStrategy] = useState<'balanced' | 'random' | 'fresh' | 'favorites'>('balanced');
+  const [addingToCart, setAddingToCart] = useState(false);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -30,6 +31,58 @@ export default function Suggestions() {
 
     fetchSuggestions();
   }, [session, status, router]);
+
+  // Handle Kroger OAuth return
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const krogerAuth = urlParams.get('kroger_auth');
+    
+    if (krogerAuth === 'success') {
+      // Try to add items to cart now that user is authenticated
+      const pendingList = sessionStorage.getItem('pendingGroceryList');
+      if (pendingList) {
+        try {
+          const parsedList = JSON.parse(pendingList);
+          setGroceryList(parsedList);
+          // Add items to cart automatically
+          setTimeout(() => {
+            handleAddToCartAfterAuth(parsedList);
+          }, 500);
+          sessionStorage.removeItem('pendingGroceryList');
+        } catch (error) {
+          console.error('Error parsing pending grocery list:', error);
+        }
+      }
+      // Clean up URL
+      router.replace('/suggestions');
+    } else if (krogerAuth === 'error') {
+      alert('Failed to authenticate with Kroger. Please try again.');
+      sessionStorage.removeItem('pendingGroceryList');
+      // Clean up URL
+      router.replace('/suggestions');
+    }
+  }, []);
+
+  const handleAddToCartAfterAuth = async (listToAdd: Ingredient[]) => {
+    try {
+      const response = await fetch('/api/kroger/add-to-cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groceryList: listToAdd })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`🎉 Successfully added ${result.itemsAdded} out of ${result.totalItems} items to your Kroger cart! Open the Kroger app or kroger.com to check out.`);
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error adding to cart after auth:', error);
+      alert('Failed to add items to cart. Please try again.');
+    }
+  };
 
   const fetchSuggestions = async (newStrategy?: string, excludeIds?: string[]) => {
     const wasRefreshing = refreshing;
@@ -143,6 +196,53 @@ export default function Suggestions() {
     const consolidatedList = consolidateIngredients(allIngredients);
     setGroceryList(consolidatedList);
     setShowGroceryList(true);
+  };
+
+  const handleAddToCart = async () => {
+    if (groceryList.length === 0) {
+      alert('Please generate a grocery list first');
+      return;
+    }
+
+    setAddingToCart(true);
+    
+    try {
+      // Check if user is already authenticated with Kroger
+      const checkAuthResponse = await fetch('/api/kroger/add-to-cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groceryList })
+      });
+
+      if (checkAuthResponse.status === 401) {
+        // User not authenticated, store grocery list and redirect to Kroger OAuth
+        sessionStorage.setItem('pendingGroceryList', JSON.stringify(groceryList));
+        
+        // Store grocery list in cookie via API call, then redirect
+        await fetch('/api/kroger/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ groceryList })
+        });
+        
+        // Direct redirect to start the OAuth flow
+        window.location.href = '/api/kroger/start';
+        return;
+      } else if (checkAuthResponse.ok) {
+        // Successfully added to cart
+        const result = await checkAuthResponse.json();
+        alert(`🎉 Successfully added ${result.itemsAdded} out of ${result.totalItems} items to your Kroger cart! Open the Kroger app or kroger.com to check out.`);
+      } else {
+        // Other error
+        const error = await checkAuthResponse.json();
+        alert(`Error: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      alert('Failed to add items to cart. Please try again.');
+    } finally {
+      setAddingToCart(false);
+    }
   };
 
   if (status === 'loading' || loading) {
@@ -390,7 +490,7 @@ export default function Suggestions() {
                         <span className="text-gray-600">
                           {ingredient.quantity} {ingredient.unit}
                         </span>
-                        <span className="font-medium">{ingredient.name}</span>
+                        <span className="font-medium text-black">{ingredient.name}</span>
 
                       </div>
                     ))}
@@ -417,9 +517,17 @@ export default function Suggestions() {
                       // Future: Save meal plan to database
                       alert('Save meal plan feature coming soon!');
                     }}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
                   >
                     Save Meal Plan
+                  </button>
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={addingToCart}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    <span>{addingToCart ? 'Adding to Cart...' : 'Add to Cart'}</span>
                   </button>
                 </div>
               </div>
