@@ -101,28 +101,48 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Primary Actions - Prominent placement */}
+        <div className="mb-8">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Get Started
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Your meal planning and grocery shopping assistant. Add recipes, plan meals for the week, and generate shopping lists.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => router.push('/recipes/new')}
+                className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 font-medium text-center transition-colors"
+              >
+                ➕ Add New Recipe
+              </button>
+              
+              {recipes.length >= 1 && (
+                <button
+                  onClick={() => router.push('/suggestions')}
+                  className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 font-medium text-center transition-colors"
+                >
+                  🎯 Get Recipe Suggestions
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Welcome Section */}
+          {/* Recent Recipes Section */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Welcome to YouFresh
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Your meal planning and grocery shopping assistant. Add recipes, plan meals for the week, and generate shopping lists.
-              </p>
               
               {recipes.length === 0 ? (
                 <div className="text-center py-8">
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Ready to get started?
+                  </h3>
                   <p className="text-gray-500 mb-4">
-                    You don't have any recipes yet. Get started by adding your first recipe!
+                    You don't have any recipes yet. Use the "Add New Recipe" button above to create your first recipe!
                   </p>
-                  <button
-                    onClick={() => router.push('/recipes/new')}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  >
-                    Add Your First Recipe
-                  </button>
                 </div>
               ) : (
                 <div>
@@ -179,32 +199,22 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Quick Actions */}
+          {/* Secondary Actions & Stats */}
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">More Actions</h3>
               <div className="space-y-3">
-                <button
-                  onClick={() => router.push('/recipes/new')}
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 text-left"
-                >
-                  ➕ Add New Recipe
-                </button>
-                
-                {recipes.length >= 1 && (
-                  <button
-                    onClick={() => router.push('/suggestions')}
-                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 text-left"
-                  >
-                    🎯 Get Recipe Suggestions
-                  </button>
-                )}
-                
                 <button
                   onClick={() => router.push('/recipes')}
                   className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 text-left"
                 >
                   📋 View All Recipes
+                </button>
+                <button
+                  onClick={() => router.push('/meal-plan')}
+                  className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 text-left"
+                >
+                  � Meal Plan
                 </button>
               </div>
             </div>
