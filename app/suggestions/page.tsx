@@ -157,8 +157,9 @@ export default function Suggestions() {
           const additional = parseFloat(ingredient.quantity) || 0;
           consolidated[key].quantity = (existing + additional).toString();
         } else {
-          // Different units, keep separate with a note
-          consolidated[key].quantity += ` + ${ingredient.quantity} ${ingredient.unit}`;
+          // Different units, show as separate line items
+          consolidated[key].quantity = `${consolidated[key].quantity} ${consolidated[key].unit} + ${ingredient.quantity} ${ingredient.unit}`;
+          consolidated[key].unit = ''; // Clear unit since we have mixed units
         }
       } else {
         consolidated[key] = { ...ingredient };
@@ -172,7 +173,12 @@ export default function Suggestions() {
     const selectedSuggestions = suggestions.filter(s => selectedRecipes.has(s.recipe.id));
     const allIngredients: Ingredient[] = [];
     
+    console.log('Selected suggestions:', selectedSuggestions.length);
+    
     selectedSuggestions.forEach(suggestion => {
+      console.log('Processing recipe:', suggestion.recipe.name);
+      console.log('Raw parsed_ingredients:', suggestion.recipe.parsed_ingredients);
+      
       if (suggestion.recipe.parsed_ingredients) {
         try {
           // Handle both parsed object and JSON string formats
@@ -183,17 +189,50 @@ export default function Suggestions() {
             parsedData = suggestion.recipe.parsed_ingredients;
           }
           
-          // Check if it has ingredients array
+          console.log('Parsed data:', parsedData);
+          
+          // Check if it has ingredients array (new format)
           if (parsedData && parsedData.ingredients && Array.isArray(parsedData.ingredients)) {
+            console.log('Found ingredients array:', parsedData.ingredients);
             allIngredients.push(...parsedData.ingredients);
+          } 
+          // Handle numbered object format (current format)
+          else if (parsedData && typeof parsedData === 'object') {
+            console.log('Processing numbered object format');
+            
+            // Get all numeric keys and convert to ingredients
+            const numericKeys = Object.keys(parsedData)
+              .filter(key => !isNaN(parseInt(key)) && key !== 'image_filename')
+              .sort((a, b) => parseInt(a) - parseInt(b));
+            
+            console.log('Numeric keys found:', numericKeys);
+            
+            numericKeys.forEach(key => {
+              const ingredient = parsedData[key];
+              if (ingredient && ingredient.name && ingredient.quantity && ingredient.unit) {
+                console.log('Adding ingredient:', ingredient);
+                allIngredients.push({
+                  name: ingredient.name,
+                  quantity: ingredient.quantity,
+                  unit: ingredient.unit
+                });
+              }
+            });
+          } else {
+            console.log('No recognized ingredients format found in parsed data');
           }
         } catch (error) {
           console.error('Error parsing ingredients for recipe:', suggestion.recipe.name, error);
         }
+      } else {
+        console.log('No parsed_ingredients found for recipe:', suggestion.recipe.name);
       }
     });
     
+    console.log('All ingredients before consolidation:', allIngredients);
     const consolidatedList = consolidateIngredients(allIngredients);
+    console.log('Consolidated list:', consolidatedList);
+    
     setGroceryList(consolidatedList);
     setShowGroceryList(true);
   };
@@ -270,7 +309,7 @@ export default function Suggestions() {
               >
                 ← Back
               </button>
-              <h1 className="text-xl font-semibold text-gray-900">Recipe Suggestions</h1>
+              <h1 className="text-xl font-semibold text-gray-900">Plan Your Meals</h1>
             </div>
             <div className="flex items-center space-x-3">
               {selectedRecipes.size > 0 && (
@@ -334,7 +373,7 @@ export default function Suggestions() {
         {suggestions.length === 0 && totalRecipes >= 1 ? (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
             <h2 className="text-lg font-semibold text-gray-800 mb-2">No Suggestions Available</h2>
-            <p className="text-gray-600">
+            <p className="text-gray-700">
               Unable to generate suggestions at this time. Try refreshing or add more recipes.
             </p>
           </div>
@@ -344,7 +383,7 @@ export default function Suggestions() {
             <div className="mb-6 bg-white rounded-lg shadow p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Suggestion Strategy</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Meal Selection Strategy</h3>
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => changeStrategy('balanced')}
@@ -389,7 +428,7 @@ export default function Suggestions() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-500">Previously shown: {previouslyShown.size}</p>
+                  <p className="text-sm text-gray-700">Previously shown: {previouslyShown.size}</p>
                   <button
                     onClick={() => setPreviouslyShown(new Set())}
                     className="text-xs text-blue-600 hover:text-blue-800"
@@ -446,7 +485,7 @@ export default function Suggestions() {
                       <div className="flex-grow"></div>
 
                       {/* Recipe Stats - Fixed to bottom */}
-                      <div className="text-sm text-gray-500 mb-4 space-y-1">
+                      <div className="text-sm text-gray-700 mb-4 space-y-1">
                         <p>Ordered {suggestion.recipe.total_orders} times</p>
                         {suggestion.recipe.last_ordered_at && (
                           <p>
@@ -470,65 +509,62 @@ export default function Suggestions() {
               })}
             </div>
 
-            {/* Grocery List Modal/Section */}
+            {/* Grocery List Modal */}
             {showGroceryList && (
-              <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold text-gray-900">Your Grocery List</h3>
-                  <button
-                    onClick={() => setShowGroceryList(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                {groceryList.length > 0 ? (
-                  <div className="space-y-2">
-                    {groceryList.map((ingredient, index) => (
-                      <div key={index} className="flex items-center gap-4 py-3 border-b border-gray-100">
-                        <span className="text-gray-600">
-                          {ingredient.quantity} {ingredient.unit}
-                        </span>
-                        <span className="font-medium text-black">{ingredient.name}</span>
-
-                      </div>
-                    ))}
+              <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                <div 
+                  className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden border-2 border-gray-200"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex justify-between items-center p-6 border-b">
+                    <h3 className="text-xl font-semibold text-gray-900">Your Grocery List</h3>
+                    <button
+                      onClick={() => setShowGroceryList(false)}
+                      className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                    >
+                      ✕
+                    </button>
                   </div>
-                ) : (
-                  <p className="text-gray-500">No ingredients found in selected recipes.</p>
-                )}
 
-                <div className="mt-6 flex space-x-3">
-                  <button
-                    onClick={() => {
-                      const listText = groceryList
-                        .map(item => `${item.quantity} ${item.unit} ${item.name}`)
-                        .join('\n');
-                      navigator.clipboard.writeText(listText);
-                      alert('Grocery list copied to clipboard!');
-                    }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  >
-                    Copy to Clipboard
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Future: Save meal plan to database
-                      alert('Save meal plan feature coming soon!');
-                    }}
-                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-                  >
-                    Save Meal Plan
-                  </button>
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={addingToCart}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
-                  >
-                    <ShoppingCart className="w-4 h-4" />
-                    <span>{addingToCart ? 'Adding to Cart...' : 'Add to Cart'}</span>
-                  </button>
+                  <div className="p-6 overflow-y-auto max-h-[60vh]">
+                    {groceryList.length > 0 ? (
+                      <div className="space-y-2">
+                        {groceryList.map((ingredient, index) => (
+                          <div key={index} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-b-0">
+                            <span className="text-gray-800 min-w-[80px]">
+                              {ingredient.quantity} {ingredient.unit}
+                            </span>
+                            <span className="font-medium text-gray-900">{ingredient.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-700 text-center py-8">No ingredients found in selected recipes.</p>
+                    )}
+                  </div>
+
+                  <div className="p-6 border-t bg-gray-50 flex space-x-3">
+                    <button
+                      onClick={() => {
+                        const listText = groceryList
+                          .map(item => `${item.quantity} ${item.unit} ${item.name}`)
+                          .join('\n');
+                        navigator.clipboard.writeText(listText);
+                        alert('Grocery list copied to clipboard!');
+                      }}
+                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Copy to Clipboard
+                    </button>
+                    <button
+                      onClick={handleAddToCart}
+                      disabled={addingToCart}
+                      className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                      <span>{addingToCart ? 'Adding...' : 'Add to Cart'}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

@@ -205,7 +205,7 @@ export default function EditRecipe({ params }: { params: Promise<{ id: string }>
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-600"
                 placeholder="Enter recipe name..."
               />
             </div>
@@ -227,11 +227,11 @@ export default function EditRecipe({ params }: { params: Promise<{ id: string }>
                     setShowParsed(false);
                   }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-600"
                 placeholder="Enter ingredients..."
               />
               <div className="mt-3 flex justify-between items-center">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-700">
                   Update ingredients to see new AI parsing results.
                 </p>
                 <button
@@ -279,19 +279,19 @@ export default function EditRecipe({ params }: { params: Promise<{ id: string }>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div className="bg-white rounded-lg p-3 border">
                     <h4 className="font-medium text-gray-900 mb-1">Primary Protein</h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-800">
                       {parsedData.primary_protein || 'None identified'}
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
                     <h4 className="font-medium text-gray-900 mb-1">Primary Carbohydrate</h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-800">
                       {parsedData.primary_carbohydrate || 'None identified'}
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
                     <h4 className="font-medium text-gray-900 mb-1">Primary Vegetable</h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-800">
                       {parsedData.primary_vegetable || 'None identified'}
                     </p>
                   </div>
@@ -314,8 +314,8 @@ export default function EditRecipe({ params }: { params: Promise<{ id: string }>
                           {parsedData.ingredients.map((ingredient, index) => (
                             <tr key={index} className="border-t border-gray-100">
                               <td className="p-3 text-gray-900">{ingredient.name}</td>
-                              <td className="p-3 text-gray-600">{ingredient.quantity}</td>
-                              <td className="p-3 text-gray-600">{ingredient.unit}</td>
+                              <td className="p-3 text-gray-800">{ingredient.quantity}</td>
+                              <td className="p-3 text-gray-800">{ingredient.unit}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -339,9 +339,9 @@ export default function EditRecipe({ params }: { params: Promise<{ id: string }>
                 id="last_ordered"
                 value={formData.last_ordered_at}
                 onChange={(e) => setFormData({ ...formData, last_ordered_at: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               />
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-gray-700">
                 Set when you last made or ordered this recipe
               </p>
             </div>

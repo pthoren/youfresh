@@ -90,7 +90,7 @@ export default function Home() {
               Recipes
             </button>
             <button
-              onClick={() => router.push('/meal-plan')}
+              onClick={() => router.push('/suggestions')}
               className="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-sm font-medium"
             >
               Meal Plan
@@ -101,28 +101,48 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Primary Actions - Prominent placement */}
+        <div className="mb-8">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Get Started
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Your meal planning and grocery shopping assistant. Add recipes, plan meals for the week, and generate shopping lists.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => router.push('/recipes/new')}
+                className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 font-medium text-center transition-colors"
+              >
+                ➕ Add New Recipe
+              </button>
+              
+              {recipes.length >= 1 && (
+                <button
+                  onClick={() => router.push('/suggestions')}
+                  className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 font-medium text-center transition-colors"
+                >
+                  📋 Plan Your Meals
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Welcome Section */}
+          {/* Recent Recipes Section */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Welcome to YouFresh
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Your meal planning and grocery shopping assistant. Add recipes, plan meals for the week, and generate shopping lists.
-              </p>
               
               {recipes.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-500 mb-4">
-                    You don't have any recipes yet. Get started by adding your first recipe!
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Ready to get started?
+                  </h3>
+                  <p className="text-gray-700 mb-4">
+                    You don't have any recipes yet. Use the "Add New Recipe" button above to create your first recipe!
                   </p>
-                  <button
-                    onClick={() => router.push('/recipes/new')}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  >
-                    Add Your First Recipe
-                  </button>
                 </div>
               ) : (
                 <div>
@@ -146,7 +166,7 @@ export default function Home() {
                         {/* Recipe Info */}
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium text-gray-900 truncate">{recipe.name}</h4>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-700">
                             {recipe.total_orders > 0 
                               ? `Ordered ${recipe.total_orders} times`
                               : 'Never ordered'
@@ -179,27 +199,11 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Quick Actions */}
+          {/* Secondary Actions & Stats */}
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">More Actions</h3>
               <div className="space-y-3">
-                <button
-                  onClick={() => router.push('/recipes/new')}
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 text-left"
-                >
-                  ➕ Add New Recipe
-                </button>
-                
-                {recipes.length >= 1 && (
-                  <button
-                    onClick={() => router.push('/suggestions')}
-                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 text-left"
-                  >
-                    🎯 Get Recipe Suggestions
-                  </button>
-                )}
-                
                 <button
                   onClick={() => router.push('/recipes')}
                   className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 text-left"
@@ -215,15 +219,20 @@ export default function Home() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Total Recipes:</span>
-                    <span className="font-medium">{recipes.length}</span>
+                    <span className="font-medium text-gray-900">{recipes.length}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Most Ordered:</span>
-                    <span className="font-medium">
+                    <span className="font-medium text-gray-900">
                       {recipes.length > 0 
-                        ? recipes.reduce((prev, current) => 
-                            prev.total_orders > current.total_orders ? prev : current
-                          ).name
+                        ? (() => {
+                            const mostOrdered = recipes.reduce((prev, current) => 
+                              prev.total_orders > current.total_orders ? prev : current
+                            );
+                            return mostOrdered.total_orders > 0 
+                              ? mostOrdered.name 
+                              : 'None ordered yet';
+                          })()
                         : 'None'
                       }
                     </span>
