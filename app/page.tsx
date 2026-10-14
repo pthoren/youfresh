@@ -104,13 +104,16 @@ export default function Home() {
         {/* Primary Actions - Prominent placement */}
         <div className="mb-8">
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Get Started
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Your meal planning and grocery shopping assistant. Add recipes, plan meals for the week, and generate shopping lists.
-            </p>
+
             <div className="flex flex-col sm:flex-row gap-3">
+                            {recipes.length >= 1 && (
+                <button
+                  onClick={() => router.push('/suggestions')}
+                  className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 font-medium text-center transition-colors"
+                >
+                  📋 Plan Meals
+                </button>
+              )}
               <button
                 onClick={() => router.push('/recipes/new')}
                 className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 font-medium text-center transition-colors"
@@ -118,14 +121,7 @@ export default function Home() {
                 ➕ Add New Recipe
               </button>
               
-              {recipes.length >= 1 && (
-                <button
-                  onClick={() => router.push('/suggestions')}
-                  className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 font-medium text-center transition-colors"
-                >
-                  📋 Plan Your Meals
-                </button>
-              )}
+
             </div>
           </div>
         </div>
@@ -201,21 +197,11 @@ export default function Home() {
 
           {/* Secondary Actions & Stats */}
           <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">More Actions</h3>
-              <div className="space-y-3">
-                <button
-                  onClick={() => router.push('/recipes')}
-                  className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 text-left"
-                >
-                  📋 View All Recipes
-                </button>
-              </div>
-            </div>
+
 
             {recipes.length > 0 && (
               <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Recipe Stats</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Stats</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Total Recipes:</span>
