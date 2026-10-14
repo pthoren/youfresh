@@ -79,7 +79,12 @@ export async function PUT(
       // Parse ingredients with AI if raw_ingredients changed
       try {
         const aiResult = await openaiService.parseIngredients(raw_ingredients);
-        updateData.parsed_ingredients = JSON.stringify(aiResult.ingredients);
+        // Store the same shape as recipe creation, keeping the existing image
+        const existingImageUrl = existingRecipe.parsed_ingredients?.image_filename;
+        updateData.parsed_ingredients = JSON.stringify({
+          ...aiResult,
+          ...(existingImageUrl && { image_filename: existingImageUrl }),
+        });
         updateData.primary_protein = aiResult.primary_protein;
         updateData.primary_carbohydrate = aiResult.primary_carbohydrate;
         updateData.primary_vegetable = aiResult.primary_vegetable;
