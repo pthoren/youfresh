@@ -57,9 +57,15 @@ export class RecipeSuggestionService {
     });
 
     // Apply diversity filter to avoid similar recipes
-    const diverseRecipes = this.applyDiversityFilter(scoredRecipes, effectiveCount);
+    const diverseRecipes = this.applyDiversityFilter(scoredRecipes, effectiveCount).slice(0, effectiveCount);
 
-    return diverseRecipes.slice(0, effectiveCount);
+    // Not enough unexcluded recipes left - top up from the excluded ones
+    if (diverseRecipes.length < effectiveCount) {
+      const excludedRecipes = allRecipes.filter(recipe => excludeRecipeIds.includes(recipe.id));
+      diverseRecipes.push(...this.getRandomRecipes(excludedRecipes, effectiveCount - diverseRecipes.length));
+    }
+
+    return diverseRecipes;
   }
 
   /**
