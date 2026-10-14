@@ -3,6 +3,9 @@ import OpenAI from 'openai';
 import { put, del } from '@vercel/blob';
 import { v4 as uuidv4 } from 'uuid';
 
+const TEXT_MODEL = process.env.OPENAI_TEXT_MODEL || 'gpt-6-luna';
+const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2.5-flare';
+
 export class OpenAIService {
   private client: OpenAI;
   private baseURL = 'https://api.openai.com/v1';
@@ -56,15 +59,16 @@ Return only the JSON object without backticks, no additional text.`;
 
     try {
       const response = await this.client.chat.completions.create({
-        model: 'gpt-4o',
+        model: TEXT_MODEL,
         messages: [
           {
             role: 'user',
             content: prompt,
           },
         ],
-        temperature: 0.1,
-        max_tokens: 1000,
+        reasoning_effort: 'low',
+        // Reasoning tokens count against this limit, so leave headroom beyond the JSON itself
+        max_completion_tokens: 4000,
       });
 
       const content = response.choices[0]?.message?.content?.trim();
@@ -114,26 +118,21 @@ Return only the JSON object without backticks, no additional text.`;
       const prompt = customPrompt || `${recipeName} served in white bowl, overhead view, food photography`;
 
       const response = await this.client.images.generate({
-        model: "dall-e-3",
+        model: IMAGE_MODEL,
         prompt: prompt,
         n: 1,
         size: "1024x1024",
-        quality: "standard",
+        quality: "medium",
       });
 
-      const imageUrl = response.data?.[0]?.url;
-      if (!imageUrl) {
-        console.error('No image URL received from OpenAI');
+      // GPT Image models return base64 image data rather than a URL
+      const imageBase64 = response.data?.[0]?.b64_json;
+      if (!imageBase64) {
+        console.error('No image data received from OpenAI');
         return null;
       }
 
-      // Download the image from OpenAI
-      const imageResponse = await fetch(imageUrl);
-      if (!imageResponse.ok) {
-        throw new Error(`Failed to download image: ${imageResponse.statusText}`);
-      }
-      
-      const buffer = await imageResponse.arrayBuffer();
+      const buffer = Buffer.from(imageBase64, 'base64');
       
       // Create a unique filename using user ID and recipe info
       const sanitizedRecipeName = recipeName.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 30);

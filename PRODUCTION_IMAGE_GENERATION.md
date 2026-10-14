@@ -1,7 +1,7 @@
 # Production Recipe Image Generation
 
 ## Overview
-We've implemented a production-ready AI-powered recipe image generation system using OpenAI's DALL-E 3 and Vercel Blob Storage. The system is designed to be non-blocking and fault-tolerant.
+We've implemented a production-ready AI-powered recipe image generation system using OpenAI's GPT Image 2.5 Flare and Vercel Blob Storage. The system is designed to be non-blocking and fault-tolerant.
 
 ## Key Features
 
@@ -26,7 +26,7 @@ We've implemented a production-ready AI-powered recipe image generation system u
 ### Data Flow
 1. **Recipe Creation**: User creates recipe → Saved immediately to database
 2. **Background Trigger**: Fire-and-forget API call to generate image
-3. **Image Generation**: DALL-E 3 creates overhead food photo
+3. **Image Generation**: GPT Image 2.5 Flare creates overhead food photo
 4. **Blob Upload**: Image uploaded to Vercel storage
 5. **Database Update**: Filename saved in `parsed_ingredients` JSON
 

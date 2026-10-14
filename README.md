@@ -30,14 +30,14 @@ YouFresh is a Next.js web application that helps users plan their grocery lists 
 
 - **Frontend**: Next.js 14+ with App Router, React, TypeScript, Tailwind CSS
 - **Backend**: Next.js API routes, PostgreSQL, Knex.js ORM
-- **AI**: OpenAI GPT-4o for ingredient parsing and categorization
+- **AI**: OpenAI GPT-6 Luna for ingredient parsing and categorization
 - **Authentication**: NextAuth.js with Google OAuth
 - **UI**: Lucide React icons, responsive design
 - **Database**: PostgreSQL (Vercel Postgres recommended)
 
 ## AI Features in Detail
 
-YouFresh uses OpenAI's GPT-4o model to intelligently parse and categorize recipe ingredients:
+YouFresh uses OpenAI's GPT-6 Luna model to intelligently parse and categorize recipe ingredients:
 
 ### Ingredient Parsing
 - Converts natural language ingredients into structured data

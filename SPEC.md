@@ -12,7 +12,7 @@ YouFresh is a Next.js web application that helps users plan their grocery lists 
 - **View Recipes**: Display all user recipes in a searchable/filterable list
 
 ### 2. AI-Powered Ingredient Parsing
-- Use OpenAI GPT-4o to parse free-text ingredients into structured data
+- Use OpenAI GPT-6 Luna to parse free-text ingredients into structured data
 - Extract individual ingredients with quantities and units
 - Automatically categorize each recipe into primary protein, carbohydrate, and vegetable
 - Validation: Recipes must have at least 2 of the 3 categories (protein, carb, vegetable)
@@ -40,7 +40,7 @@ YouFresh is a Next.js web application that helps users plan their grocery lists 
 - **ORM**: Knex
 - **API**: Next.js API routes
 - **Authentication**: NextAuth.js with Google OAuth
-- **AI Integration**: OpenAI API (GPT-4o)
+- **AI Integration**: OpenAI API (GPT-6 Luna)
 
 ### Database Schema
 

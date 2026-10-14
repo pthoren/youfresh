@@ -1,7 +1,7 @@
 # Recipe Image Generation - Implementation Summary
 
 ## Overview
-We've implemented AI-powered image generation for recipes using OpenAI's DALL-E 3, with a focus on overhead-style food photography to minimize AI generation artifacts and create consistent, professional-looking images.
+We've implemented AI-powered image generation for recipes using OpenAI's GPT Image 2.5 Flare, with a focus on overhead-style food photography to minimize AI generation artifacts and create consistent, professional-looking images.
 
 ## Key Implementation Details
 

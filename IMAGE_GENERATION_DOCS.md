@@ -7,7 +7,7 @@ We've successfully implemented AI-powered recipe image generation for the YouFre
 
 ### 1. Image Generation Service
 - **Location**: `lib/openai.ts`
-- **Model**: DALL-E 3 from OpenAI
+- **Model**: GPT Image 2.5 Flare from OpenAI
 - **Style**: Overhead/top-down view only (minimizes AI artifacts)
 - **Storage**: Local file system in `public/recipe-images/` for development
 - **Naming**: Uses user UUID + random UUID for filename uniqueness
