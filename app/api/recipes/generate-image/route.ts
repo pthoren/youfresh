@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { recipeId } = await request.json();
+    const { recipeId, regenerate = false } = await request.json();
 
     if (!recipeId) {
       return NextResponse.json({ error: 'Recipe ID is required' }, { status: 400 });
@@ -41,7 +41,9 @@ export async function POST(request: NextRequest) {
       console.error('Error parsing existing recipe data:', error);
     }
 
-    if (parsedData?.image_filename) {
+    const previousImageUrl = parsedData?.image_filename;
+
+    if (previousImageUrl && !regenerate) {
       return NextResponse.json({ 
         success: true, 
         message: 'Image already exists',
@@ -73,6 +75,11 @@ export async function POST(request: NextRequest) {
           parsed_ingredients: JSON.stringify(updatedParsedData),
           updated_at: new Date()
         });
+
+      // Clean up the replaced image once the new one is saved
+      if (previousImageUrl) {
+        await openaiService.deleteRecipeImage(previousImageUrl);
+      }
 
       return NextResponse.json({ 
         success: true, 

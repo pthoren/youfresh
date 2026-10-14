@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Recipe, ParsedRecipeData } from '@/lib/types';
+import { Recipe, ParsedRecipeData, getImageUrlFromRecipe } from '@/lib/types';
 
 export default function EditRecipe({ params }: { params: Promise<{ id: string }> }) {
   const { data: session, status } = useSession();
@@ -21,6 +21,8 @@ export default function EditRecipe({ params }: { params: Promise<{ id: string }>
   const [error, setError] = useState('');
   const [parsedData, setParsedData] = useState<ParsedRecipeData | null>(null);
   const [showParsed, setShowParsed] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [regeneratingImage, setRegeneratingImage] = useState(false);
 
   // Resolve params Promise
   useEffect(() => {
@@ -49,6 +51,7 @@ export default function EditRecipe({ params }: { params: Promise<{ id: string }>
         
         if (currentRecipe) {
           setRecipe(currentRecipe);
+          setImageUrl(getImageUrlFromRecipe(currentRecipe));
           setFormData({
             name: currentRecipe.name,
             raw_ingredients: currentRecipe.raw_ingredients,
@@ -99,6 +102,32 @@ export default function EditRecipe({ params }: { params: Promise<{ id: string }>
       setError('Failed to parse ingredients');
     } finally {
       setParsing(false);
+    }
+  };
+
+  const handleRegenerateImage = async () => {
+    setRegeneratingImage(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/recipes/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recipeId, regenerate: true }),
+      });
+
+      const data = await response.json();
+      if (response.ok && data.imageUrl) {
+        setImageUrl(data.imageUrl);
+      } else {
+        setError(data.error || 'Failed to generate image');
+      }
+    } catch (error) {
+      setError('Failed to generate image');
+    } finally {
+      setRegeneratingImage(false);
     }
   };
 
@@ -194,6 +223,36 @@ export default function EditRecipe({ params }: { params: Promise<{ id: string }>
                 {error}
               </div>
             )}
+
+            <div>
+              <span className="block text-sm font-medium text-gray-700 mb-2">Image</span>
+              <div className="w-full h-64 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                {regeneratingImage ? (
+                  <div className="text-center text-gray-500">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                    <p className="text-sm font-medium">Generating image...</p>
+                  </div>
+                ) : imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt={`Image of ${formData.name}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <p className="text-sm text-gray-500">No image yet</p>
+                )}
+              </div>
+              <div className="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleRegenerateImage}
+                  disabled={regeneratingImage}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                >
+                  {regeneratingImage ? 'Generating...' : imageUrl ? 'Regenerate Image' : 'Generate Image'}
+                </button>
+              </div>
+            </div>
 
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
