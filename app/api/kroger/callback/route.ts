@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     console.log('Cookie domain:', req.headers.get('host'));
     
     // Create response with redirect
-    const redirectUrl = new URL('/suggestions?kroger_auth=success', req.url);
+    const redirectUrl = new URL('/?kroger_auth=success', req.url);
     const response = NextResponse.redirect(redirectUrl);
     
     // Also set the cookie directly on the response as a backup
@@ -42,6 +42,6 @@ export async function GET(req: NextRequest) {
     return response;
   } catch (error) {
     console.error('Error getting user token:', error);
-    return NextResponse.redirect(new URL('/suggestions?kroger_auth=error', req.url));
+    return NextResponse.redirect(new URL('/?kroger_auth=error', req.url));
   }
 }

@@ -103,15 +103,6 @@ export default function Recipes() {
                 <Plus size={20} />
                 <span>Add Recipe</span>
               </button>
-              {recipes.length >= 1 && (
-                <button
-                  onClick={() => router.push('/suggestions')}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2"
-                >
-                  <span>📋</span>
-                  <span>Plan Your Meals</span>
-                </button>
-              )}
             </div>
           </div>
         </div>

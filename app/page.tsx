@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Recipe } from '@/lib/types';
 import RecipeImage from '@/components/RecipeImage';
+import MealSuggestions from '@/components/MealSuggestions';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -89,62 +90,46 @@ export default function Home() {
             >
               Recipes
             </button>
-            <button
-              onClick={() => router.push('/suggestions')}
-              className="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-sm font-medium"
-            >
-              Meal Plan
-            </button>
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Primary Actions - Prominent placement */}
-        <div className="mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-
-            <div className="flex flex-col sm:flex-row gap-3">
-                            {recipes.length >= 1 && (
-                <button
-                  onClick={() => router.push('/suggestions')}
-                  className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 font-medium text-center transition-colors"
-                >
-                  📋 Plan Meals
-                </button>
-              )}
-              <button
-                onClick={() => router.push('/recipes/new')}
-                className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 font-medium text-center transition-colors"
-              >
-                ➕ Add New Recipe
-              </button>
-              
-
-            </div>
+        {/* Meal Suggestions */}
+        {recipes.length >= 1 && (
+          <div className="mb-8">
+            <MealSuggestions />
           </div>
-        </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Recent Recipes Section */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow p-6">
-              
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Recent Recipes{recipes.length > 0 && ` (${recipes.length})`}
+                </h3>
+                <button
+                  onClick={() => router.push('/recipes/new')}
+                  className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
+                >
+                  ➕ Add New Recipe
+                </button>
+              </div>
+
               {recipes.length === 0 ? (
                 <div className="text-center py-8">
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
                     Ready to get started?
                   </h3>
                   <p className="text-gray-700 mb-4">
-                    You don't have any recipes yet. Use the "Add New Recipe" button above to create your first recipe!
+                    You don't have any recipes yet. Use the "Add New Recipe" button to create your first recipe!
                   </p>
                 </div>
               ) : (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
-                    Recent Recipes ({recipes.length})
-                  </h3>
                   <div className="space-y-3">
                     {recipes.slice(0, 5).map((recipe) => (
                       <div
