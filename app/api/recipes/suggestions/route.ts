@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-config';
 import db from '@/lib/db';
-import { recipeSuggestionService } from '@/lib/recipeSuggestionService';
+import { recipeSuggestionService, MealPlanHistory } from '@/lib/recipeSuggestionService';
+
+const HISTORY_WEEKS = 12;
 
 export async function GET(request: NextRequest) {
   try {
@@ -51,10 +53,33 @@ export async function GET(request: NextRequest) {
       };
     });
 
+    // Each new suggestion or edit saves a plan, so only the last plan saved in
+    // each calendar week counts as what was actually made that week
+    const { rows: weeklyPlans } = await db.raw(
+      `SELECT DISTINCT ON (date_trunc('week', created_at)) recipe_ids, created_at
+       FROM meal_plans
+       WHERE user_id = ? AND created_at > now() - make_interval(weeks => ?)
+       ORDER BY date_trunc('week', created_at), created_at DESC`,
+      [user.id, HISTORY_WEEKS]
+    );
+
+    const history: MealPlanHistory = new Map();
+    for (const plan of weeklyPlans as { recipe_ids: string[] | null; created_at: string }[]) {
+      const plannedAt = new Date(plan.created_at);
+      for (const recipeId of (plan.recipe_ids || []) as string[]) {
+        const entry = history.get(recipeId);
+        history.set(recipeId, {
+          lastPlannedAt: entry && entry.lastPlannedAt > plannedAt ? entry.lastPlannedAt : plannedAt,
+          timesPlanned: (entry?.timesPlanned || 0) + 1,
+        });
+      }
+    }
+
     // Get suggestions using the service with new options
     const suggestions = recipeSuggestionService.suggestRecipes(formattedRecipes, count, {
       excludeRecipeIds: excludeIds,
-      strategy: strategy as 'balanced' | 'random' | 'fresh' | 'favorites'
+      strategy: strategy as 'balanced' | 'random' | 'fresh' | 'favorites',
+      history,
     });
 
     return NextResponse.json({

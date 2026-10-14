@@ -1,5 +1,11 @@
 import { Recipe, RecipeSuggestion } from '@/lib/types';
 
+// How often each recipe appeared in past weekly meal plans
+export type MealPlanHistory = Map<string, { lastPlannedAt: Date; timesPlanned: number }>;
+
+// Score penalty for each main ingredient a recipe shares with meals already picked
+const SHARED_INGREDIENT_PENALTY = 40;
+
 export class RecipeSuggestionService {
   
   /**
@@ -12,11 +18,12 @@ export class RecipeSuggestionService {
       excludeRecipeIds?: string[];
       strategy?: 'balanced' | 'random' | 'fresh' | 'favorites';
       randomSeed?: number;
+      history?: MealPlanHistory;
     } = {}
   ): RecipeSuggestion[] {
     if (allRecipes.length === 0) return [];
     
-    const { excludeRecipeIds = [], strategy = 'balanced', randomSeed } = options;
+    const { excludeRecipeIds = [], strategy = 'balanced', randomSeed, history } = options;
     
     // Special handling for single recipe - allow multiple suggestions of the same recipe
     if (allRecipes.length === 1) {
@@ -41,23 +48,18 @@ export class RecipeSuggestionService {
       return this.getRandomRecipes(allRecipes, effectiveCount);
     }
 
-    // Score each recipe based on strategy
-    const scoredRecipes = availableRecipes.map(recipe => ({
-      recipe,
-      score: this.calculateRecipeScore(recipe, strategy, randomSeed),
-      reason: this.getRecipeReason(recipe, strategy)
-    }));
-
-    // Sort by score (higher is better) with some randomization
-    scoredRecipes.sort((a, b) => {
-      const scoreDiff = b.score - a.score;
-      // Add small random factor to break ties and add variety
-      const randomFactor = (Math.random() - 0.5) * 10;
-      return scoreDiff + randomFactor;
+    // Score each recipe based on strategy, counting planned weeks as times it was made
+    const scoredRecipes = availableRecipes.map(recipe => {
+      const withHistory = this.applyMealPlanHistory(recipe, history);
+      return {
+        recipe,
+        score: this.calculateRecipeScore(withHistory, strategy, randomSeed),
+        reason: this.getRecipeReason(withHistory, strategy)
+      };
     });
 
-    // Apply diversity filter to avoid similar recipes
-    const diverseRecipes = this.applyDiversityFilter(scoredRecipes, effectiveCount).slice(0, effectiveCount);
+    // Pick the best-scoring recipes while avoiding repeated main ingredients
+    const diverseRecipes = this.applyDiversityFilter(scoredRecipes, effectiveCount);
 
     // Not enough unexcluded recipes left - top up from the excluded ones
     if (diverseRecipes.length < effectiveCount) {
@@ -155,37 +157,56 @@ export class RecipeSuggestionService {
   }
 
   /**
-   * Apply diversity filter to avoid suggesting recipes with same primary ingredients
+   * Treat recipes from past weekly meal plans as made on the day they were planned.
+   * Only used for scoring; the recipe's own order stats are left unchanged.
+   */
+  private static applyMealPlanHistory(recipe: Recipe, history?: MealPlanHistory): Recipe {
+    const planned = history?.get(recipe.id);
+    if (!planned) return recipe;
+
+    const lastOrdered = recipe.last_ordered_at ? new Date(recipe.last_ordered_at) : null;
+    return {
+      ...recipe,
+      last_ordered_at: lastOrdered && lastOrdered > planned.lastPlannedAt ? lastOrdered : planned.lastPlannedAt,
+      total_orders: recipe.total_orders + planned.timesPlanned,
+    };
+  }
+
+  /**
+   * Pick recipes one at a time, penalizing any that share a primary protein,
+   * carbohydrate, or vegetable with recipes already picked. Repeats are only
+   * chosen when nothing else scores higher after the penalty.
    */
   private static applyDiversityFilter(scoredRecipes: RecipeSuggestion[], count: number): RecipeSuggestion[] {
+    const remaining = [...scoredRecipes];
     const selected: RecipeSuggestion[] = [];
-    const usedProteins = new Set<string>();
-    const usedCarbs = new Set<string>();
-    const usedVeggies = new Set<string>();
+    const usedIngredients = new Set<string>();
 
-    for (const suggestion of scoredRecipes) {
-      if (selected.length >= count) break;
+    const mainIngredients = (recipe: Recipe) =>
+      [
+        ['protein', recipe.primary_protein],
+        ['carb', recipe.primary_carbohydrate],
+        ['vegetable', recipe.primary_vegetable],
+      ]
+        .filter(([, name]) => name?.trim())
+        .map(([category, name]) => `${category}:${name!.trim().toLowerCase()}`);
 
-      const recipe = suggestion.recipe;
-      const protein = recipe.primary_protein?.toLowerCase();
-      const carb = recipe.primary_carbohydrate?.toLowerCase();
-      const veggie = recipe.primary_vegetable?.toLowerCase();
+    while (selected.length < count && remaining.length > 0) {
+      let bestIndex = 0;
+      let bestScore = -Infinity;
 
-      // Check for conflicts with already selected recipes
-      let hasConflict = false;
-      
-      if (protein && usedProteins.has(protein)) hasConflict = true;
-      if (carb && usedCarbs.has(carb)) hasConflict = true;
-      if (veggie && usedVeggies.has(veggie)) hasConflict = true;
+      remaining.forEach((suggestion, index) => {
+        const sharedCount = mainIngredients(suggestion.recipe).filter(ingredient => usedIngredients.has(ingredient)).length;
+        const adjustedScore = suggestion.score - sharedCount * SHARED_INGREDIENT_PENALTY;
+        if (adjustedScore > bestScore) {
+          bestScore = adjustedScore;
+          bestIndex = index;
+        }
+      });
 
-      // If no conflict or we need to fill remaining slots, add it
-      if (!hasConflict || selected.length < Math.min(count, scoredRecipes.length)) {
-        selected.push(suggestion);
-        
-        if (protein) usedProteins.add(protein);
-        if (carb) usedCarbs.add(carb);
-        if (veggie) usedVeggies.add(veggie);
-      }
+      const [best] = remaining.splice(bestIndex, 1);
+      selected.push(best);
+      mainIngredients(best.recipe).forEach(ingredient => usedIngredients.add(ingredient));
     }
 
     return selected;
