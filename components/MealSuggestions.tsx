@@ -2,17 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { RecipeSuggestion, Ingredient } from '@/lib/types';
-import { RefreshCw, ShoppingCart } from 'lucide-react';
+import { Recipe, RecipeSuggestion, Ingredient, formatRecipeName } from '@/lib/types';
+import { RefreshCw, ShoppingCart, ListChecks } from 'lucide-react';
 import RecipeImage from '@/components/RecipeImage';
 
-export default function MealSuggestions() {
+export default function MealSuggestions({ totalRecipes }: { totalRecipes: number }) {
   const router = useRouter();
   const [suggestions, setSuggestions] = useState<RecipeSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [totalRecipes, setTotalRecipes] = useState(0);
-  const [selectedRecipes, setSelectedRecipes] = useState<Set<string>>(new Set());
   const [groceryList, setGroceryList] = useState<Ingredient[]>([]);
   const [showGroceryList, setShowGroceryList] = useState(false);
   const [previouslyShown, setPreviouslyShown] = useState<Set<string>>(new Set());
@@ -20,8 +18,51 @@ export default function MealSuggestions() {
   const [addingToCart, setAddingToCart] = useState(false);
 
   useEffect(() => {
-    fetchSuggestions();
+    loadMealPlan();
   }, []);
+
+  const showMeals = (recipes: Recipe[]) => {
+    setSuggestions(recipes.map(recipe => ({ recipe, reason: '', score: 0 })));
+
+    const recipeIds = recipes.map(recipe => recipe.id);
+    setPreviouslyShown(prev => new Set([...prev, ...recipeIds]));
+  };
+
+  // Show the saved meal plan, or generate one if there isn't one yet
+  const loadMealPlan = async () => {
+    try {
+      const response = await fetch('/api/meal-plan');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.plan?.recipes?.length) {
+          showMeals(data.plan.recipes);
+          setLoading(false);
+          return;
+        }
+      } else {
+        console.error('Failed to fetch meal plan');
+      }
+    } catch (error) {
+      console.error('Error fetching meal plan:', error);
+    }
+
+    fetchSuggestions();
+  };
+
+  const saveMealPlan = async (recipeIds: string[]) => {
+    try {
+      const response = await fetch('/api/meal-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipeIds: [...new Set(recipeIds)] }),
+      });
+      if (!response.ok) {
+        console.error('Failed to save meal plan');
+      }
+    } catch (error) {
+      console.error('Error saving meal plan:', error);
+    }
+  };
 
   // Handle Kroger OAuth return
   useEffect(() => {
@@ -87,16 +128,14 @@ export default function MealSuggestions() {
       if (response.ok) {
         const data = await response.json();
         setSuggestions(data.suggestions);
-        setTotalRecipes(data.total_recipes);
-        
-        // Track newly shown recipes
-        const newlyShown = data.suggestions.map((s: RecipeSuggestion) => s.recipe.id);
-        setPreviouslyShown(prev => new Set([...prev, ...newlyShown]));
-        
-        // Select all suggested recipes by default
+
         const recipeIds: string[] = data.suggestions.map((s: RecipeSuggestion) => s.recipe.id);
-        const newSelection = new Set(recipeIds);
-        setSelectedRecipes(newSelection);
+        setPreviouslyShown(prev => new Set([...prev, ...recipeIds]));
+
+        // New suggestions become the saved plan for the week
+        if (recipeIds.length > 0) {
+          saveMealPlan(recipeIds);
+        }
       } else {
         console.error('Failed to fetch suggestions');
       }
@@ -110,7 +149,6 @@ export default function MealSuggestions() {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    setSelectedRecipes(new Set());
     setShowGroceryList(false);
     // Exclude previously shown recipes for more variety
     fetchSuggestions(strategy, Array.from(previouslyShown));
@@ -119,20 +157,9 @@ export default function MealSuggestions() {
   const changeStrategy = async (newStrategy: 'balanced' | 'random' | 'fresh' | 'favorites') => {
     setStrategy(newStrategy);
     setRefreshing(true);
-    setSelectedRecipes(new Set());
     setShowGroceryList(false);
     await fetchSuggestions(newStrategy, []);
     setRefreshing(false);
-  };
-
-  const toggleRecipeSelection = (recipeId: string) => {
-    const newSelection = new Set(selectedRecipes);
-    if (newSelection.has(recipeId)) {
-      newSelection.delete(recipeId);
-    } else {
-      newSelection.add(recipeId);
-    }
-    setSelectedRecipes(newSelection);
   };
 
   const consolidateIngredients = (ingredients: Ingredient[]): Ingredient[] => {
@@ -161,12 +188,11 @@ export default function MealSuggestions() {
   };
 
   const generateGroceryList = () => {
-    const selectedSuggestions = suggestions.filter(s => selectedRecipes.has(s.recipe.id));
     const allIngredients: Ingredient[] = [];
     
-    console.log('Selected suggestions:', selectedSuggestions.length);
+    console.log('Meals for grocery list:', suggestions.length);
     
-    selectedSuggestions.forEach(suggestion => {
+    suggestions.forEach(suggestion => {
       console.log('Processing recipe:', suggestion.recipe.name);
       console.log('Raw parsed_ingredients:', suggestion.recipe.parsed_ingredients);
       
@@ -289,13 +315,13 @@ export default function MealSuggestions() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
         <h2 className="text-xl font-semibold text-gray-900">This Week's Meals</h2>
         <div className="flex items-center space-x-3">
-          {selectedRecipes.size > 0 && (
+          {suggestions.length > 0 && (
             <button
               onClick={generateGroceryList}
               className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
             >
               <ShoppingCart className="w-4 h-4" />
-              <span>Grocery List ({selectedRecipes.size})</span>
+              <span>Grocery List ({suggestions.length})</span>
             </button>
           )}
           <button
@@ -305,6 +331,13 @@ export default function MealSuggestions() {
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             <span>{refreshing ? 'Refreshing...' : 'New Suggestions'}</span>
+          </button>
+          <button
+            onClick={() => router.push('/recipes')}
+            className="flex items-center space-x-2 bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50"
+          >
+            <ListChecks className="w-4 h-4" />
+            <span>Edit</span>
           </button>
         </div>
       </div>
@@ -356,18 +389,9 @@ export default function MealSuggestions() {
                   <RecipeImage recipe={suggestion.recipe} className="w-full h-48" />
                   
                   <div className="p-6 flex flex-col flex-grow">
-                    {/* Selection Checkbox */}
-                    <div className="flex items-center gap-4 mb-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedRecipes.has(suggestion.recipe.id)}
-                        onChange={() => toggleRecipeSelection(suggestion.recipe.id)}
-                        className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                      />
-                      <h3 className="text-xl font-semibold text-gray-900 pr-8">
-                        {suggestion.recipe.name}
-                      </h3>
-                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      {formatRecipeName(suggestion.recipe.name)}
+                    </h3>
 
                     {/* Recipe Categories */}
                     <div className="mb-4">

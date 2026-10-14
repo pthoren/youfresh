@@ -96,3 +96,24 @@ export function shouldShowImageLoading(recipe: Recipe): boolean {
   
   return recipeDate > fiveMinutesAgo && !getImageUrlFromRecipe(recipe);
 }
+
+// Short words stay lowercase in titles unless they start the name
+const LOWERCASE_TITLE_WORDS = new Set(['a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'in', 'n', 'of', 'on', 'or', 'the', 'to', 'with']);
+
+/**
+ * Format a recipe name for display in title case, e.g. "chicken soup" -> "Chicken Soup".
+ * Only first letters are changed, so existing capitals like "BBQ" are kept.
+ */
+export function formatRecipeName(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((word, index) => {
+      if (index > 0 && LOWERCASE_TITLE_WORDS.has(word.toLowerCase())) {
+        return word.toLowerCase();
+      }
+      // Capitalize each part of hyphenated words, e.g. "stir-fry" -> "Stir-Fry"
+      return word.replace(/(^|-)(\p{L})/gu, (_, prefix, letter) => prefix + letter.toUpperCase());
+    })
+    .join(' ');
+}

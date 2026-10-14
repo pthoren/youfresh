@@ -3,7 +3,7 @@
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Recipe } from '@/lib/types';
+import { Recipe, formatRecipeName } from '@/lib/types';
 import RecipeImage from '@/components/RecipeImage';
 import MealSuggestions from '@/components/MealSuggestions';
 
@@ -99,7 +99,7 @@ export default function Home() {
         {/* Meal Suggestions */}
         {recipes.length >= 1 && (
           <div className="mb-8">
-            <MealSuggestions />
+            <MealSuggestions totalRecipes={recipes.length} />
           </div>
         )}
 
@@ -146,7 +146,7 @@ export default function Home() {
                         
                         {/* Recipe Info */}
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900 truncate">{recipe.name}</h4>
+                          <h4 className="font-medium text-gray-900 truncate">{formatRecipeName(recipe.name)}</h4>
                           <p className="text-sm text-gray-700">
                             {recipe.total_orders > 0 
                               ? `Ordered ${recipe.total_orders} times`
@@ -201,7 +201,7 @@ export default function Home() {
                               prev.total_orders > current.total_orders ? prev : current
                             );
                             return mostOrdered.total_orders > 0 
-                              ? mostOrdered.name 
+                              ? formatRecipeName(mostOrdered.name) 
                               : 'None ordered yet';
                           })()
                         : 'None'

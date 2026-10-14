@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Recipe, ParsedRecipeData, getImageUrlFromRecipe } from '@/lib/types';
+import { Recipe, ParsedRecipeData, getImageUrlFromRecipe, formatRecipeName } from '@/lib/types';
 
 export default function EditRecipe({ params }: { params: Promise<{ id: string }> }) {
   const { data: session, status } = useSession();
@@ -235,7 +235,7 @@ export default function EditRecipe({ params }: { params: Promise<{ id: string }>
                 ) : imageUrl ? (
                   <img
                     src={imageUrl}
-                    alt={`Image of ${formData.name}`}
+                    alt={`Image of ${formatRecipeName(formData.name)}`}
                     className="w-full h-full object-cover"
                   />
                 ) : (

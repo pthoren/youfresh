@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Recipe, getImageUrlFromRecipe, shouldShowImageLoading } from '@/lib/types';
+import { Recipe, getImageUrlFromRecipe, shouldShowImageLoading, formatRecipeName } from '@/lib/types';
 
 interface RecipeImageProps {
   recipe: Recipe;
@@ -69,7 +69,7 @@ export default function RecipeImage({ recipe, className = "w-full h-48", onImage
       <div className={`${className} bg-gray-200`}>
         <img
           src={imageUrl}
-          alt={`Image of ${recipe.name}`}
+          alt={`Image of ${formatRecipeName(recipe.name)}`}
           className="w-full h-full object-cover"
           onError={(e) => {
             // Hide image if it fails to load and stop showing loading
