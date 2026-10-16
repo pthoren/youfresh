@@ -200,10 +200,14 @@ export default function Recipes() {
     );
   };
 
-  const filteredRecipes = recipes.filter(recipe =>
-    recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    recipe.raw_ingredients.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredRecipes = recipes
+    .filter(recipe =>
+      recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      recipe.raw_ingredients.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) =>
+      a.name.trim().localeCompare(b.name.trim(), undefined, { sensitivity: 'base', numeric: true })
+    );
 
   if (status === 'loading' || loading) {
     return (
@@ -354,18 +358,14 @@ export default function Recipes() {
             {filteredRecipes.map((recipe) => (
               <div
                 key={recipe.id}
-                className="flex items-center gap-4 p-4"
+                className="flex items-center gap-4 px-4 py-3"
               >
-                <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                  <RecipeImage recipe={recipe} className="w-16 h-16" />
+                <div className="w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                  <RecipeImage recipe={recipe} className="w-14 h-14" />
                 </div>
 
                 <div className="flex-1 min-w-0">
                   {renderMealCheckbox(recipe, 'text-base')}
-                  <p className="mt-1 ml-8 text-sm text-gray-700">
-                    Ordered {recipe.total_orders} time{recipe.total_orders !== 1 ? 's' : ''}
-                    {recipe.last_ordered_at && ` · Last: ${new Date(recipe.last_ordered_at).toLocaleDateString()}`}
-                  </p>
                 </div>
 
                 {renderActions(recipe)}
@@ -394,6 +394,14 @@ export default function Recipes() {
               )}
             </div>
             <div className="flex items-center space-x-3">
+              {selectedIds.length > 0 && (
+                <button
+                  onClick={() => setSelectedIds([])}
+                  className="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm"
+                >
+                  Deselect All
+                </button>
+              )}
               {planChanged && (
                 <button
                   onClick={() => setSelectedIds(savedIds)}
