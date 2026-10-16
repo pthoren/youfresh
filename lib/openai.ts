@@ -6,6 +6,15 @@ import { v4 as uuidv4 } from 'uuid';
 const TEXT_MODEL = process.env.OPENAI_TEXT_MODEL || 'gpt-6-luna';
 const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2.5-flare';
 
+// Placeholder answers the model sometimes gives instead of an empty string
+const MISSING_INGREDIENT_VALUES = new Set(['none', 'n/a', 'na', 'null', 'nil', 'unknown', 'not applicable', '-']);
+
+function normalizeIngredient(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  const trimmed = value.trim();
+  return MISSING_INGREDIENT_VALUES.has(trimmed.toLowerCase()) ? '' : trimmed;
+}
+
 export class OpenAIService {
   private client: OpenAI;
   private baseURL = 'https://api.openai.com/v1';
@@ -38,6 +47,7 @@ Important guidelines:
 - For carbohydrates: include rice, pasta, bread, potatoes, grains, etc.
 - For vegetables: include fresh vegetables, herbs (not just garnish amounts)
 - Only return the most prominent ingredient for each category
+- If a category has no meaningful ingredient (e.g. only aromatics like garlic or onion, or garnish amounts), return an empty string "" for it. Never return "none", "N/A", or null
 - A meal needs at least 2 of the 3 categories to be valid
 - If quantity is unclear, estimate reasonably
 - Standardize units (cups, tbsp, tsp, lb, oz, etc.)
@@ -86,13 +96,18 @@ Return only the JSON object without backticks, no additional text.`;
           throw new Error('Invalid response: missing or invalid ingredients array');
         }
 
-        // Ensure all required fields are present
+        // Ensure all required fields are present, treating placeholder answers as missing
+        const primary_protein = normalizeIngredient(parsedData.primary_protein);
+        const primary_carbohydrate = normalizeIngredient(parsedData.primary_carbohydrate);
+        const primary_vegetable = normalizeIngredient(parsedData.primary_vegetable);
+
         const result: ParsedRecipeData = {
           ingredients: parsedData.ingredients,
-          primary_protein: parsedData.primary_protein || '',
-          primary_carbohydrate: parsedData.primary_carbohydrate || '',
-          primary_vegetable: parsedData.primary_vegetable || '',
-          is_valid_meal: parsedData.is_valid_meal || false,
+          primary_protein,
+          primary_carbohydrate,
+          primary_vegetable,
+          // A valid meal has at least 2 of protein/carb/vegetable
+          is_valid_meal: [primary_protein, primary_carbohydrate, primary_vegetable].filter(Boolean).length >= 2,
         };
 
         return result;

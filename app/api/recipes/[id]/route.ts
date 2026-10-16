@@ -85,9 +85,9 @@ export async function PUT(
           ...aiResult,
           ...(existingImageUrl && { image_filename: existingImageUrl }),
         });
-        updateData.primary_protein = aiResult.primary_protein;
-        updateData.primary_carbohydrate = aiResult.primary_carbohydrate;
-        updateData.primary_vegetable = aiResult.primary_vegetable;
+        updateData.primary_protein = aiResult.primary_protein || null;
+        updateData.primary_carbohydrate = aiResult.primary_carbohydrate || null;
+        updateData.primary_vegetable = aiResult.primary_vegetable || null;
       } catch (aiError) {
         console.error('AI parsing failed during recipe update:', aiError);
         // Continue with update even if AI parsing fails
